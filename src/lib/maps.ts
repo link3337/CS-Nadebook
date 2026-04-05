@@ -28,3 +28,7 @@ export const MAPS: MapMeta[] = [
 
 export const getMapPoster = (mapId?: string) => MAPS.find((m) => m.id === mapId)?.posterUrl;
 export const getMapImage = (mapId: string) => MAPS.find((m) => m.id === mapId)?.mapUrl;
+export const getDisplayMapImage = (mapId?: string) => {
+  if (!mapId) return undefined;
+  return getMapImage(mapId) ?? getMapPoster(mapId);
+};

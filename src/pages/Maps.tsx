@@ -1,4 +1,4 @@
-import { Badge, Card, Center, Chip, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Badge, Card, Group, SimpleGrid, Text } from '@mantine/core';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MAPS } from '../lib/maps';
@@ -82,20 +82,6 @@ export const Maps: React.FC = () => {
           );
         })}
       </SimpleGrid>
-
-      <div style={{ marginTop: 18 }}>
-        <Center>
-          <Stack align="center">
-            <Group>
-              {MAPS.map((m) => (
-                <Chip component={Link} key={m.id} variant="filled" radius="sm">
-                  {m.name}
-                </Chip>
-              ))}
-            </Group>
-          </Stack>
-        </Center>
-      </div>
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import { AppShell, Button, Container, Stack } from '@mantine/core';
-import { IconHome, IconSettings, IconMap2, IconPlus, IconTarget } from '@tabler/icons-react';
+import { IconHome, IconMap2, IconPlus, IconSettings, IconTarget } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
 import AppRoutes from './components/AppRoutes';
 import Footer from './components/Footer';
+import { seedSampleLineups } from './store/lineups';
 
 function App() {
   const location = useLocation();
@@ -12,6 +13,8 @@ function App() {
   const isNewLineupRoute = path === '/lineups/new';
   const isPracticeRoute = path === '/practice' || path.startsWith('/practice/');
   const isSettingsRoute = path === '/settings' || path.startsWith('/settings/');
+
+  seedSampleLineups();
 
   return (
     <AppShell

@@ -1,32 +1,92 @@
 import { Button } from '@mantine/core';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MAPS, getMapImage } from '../lib/maps';
+import type { NormalizedCoords } from '../components/MapCanvas';
+import MapCanvas from '../components/MapCanvas';
+import { getDisplayMapImage } from '../lib/maps';
 import { useLineupsStore } from '../store/lineups';
 
-const viewBoxWidth = 1000;
-const viewBoxHeight = 600;
-
-const toViewBox = (coords?: [number, number]) => {
-  if (!coords) return null;
-  const [x, y] = coords;
-  return [x * viewBoxWidth, y * viewBoxHeight];
+const targetKey = (coords?: NormalizedCoords) => {
+  if (!coords) return '';
+  return `${coords[0].toFixed(4)}|${coords[1].toFixed(4)}`;
 };
 
 const MapDetail: React.FC = () => {
   const { mapId } = useParams();
   const navigate = useNavigate();
+  const [selectedTargetKey, setSelectedTargetKey] = React.useState<string | null>(null);
   const allLineups = useLineupsStore((s) => s.lineups);
   const lineups = React.useMemo(
     () => allLineups.filter((l) => l.map === mapId),
     [allLineups, mapId]
   );
 
-  const mapImage = React.useMemo(() => {
-    if (!mapId) return undefined;
-    const meta = MAPS.find((m) => m.id === mapId);
-    return meta?.mapUrl ?? getMapImage(mapId);
-  }, [mapId]);
+  const mapImage = React.useMemo(() => getDisplayMapImage(mapId), [mapId]);
+
+  const overlays = React.useMemo(
+    () =>
+      lineups
+        .map((l, idx) => ({
+          lineup: l,
+          color: ['#ff6b6b', '#4dabf7', '#ffd43b'][idx % 3]
+        }))
+        .filter((item) => item.lineup.startCoords && item.lineup.targetCoords),
+    [lineups]
+  );
+
+  const filteredOverlays = React.useMemo(() => {
+    if (!selectedTargetKey) return overlays;
+    return overlays.filter(
+      ({ lineup }) =>
+        targetKey(lineup.targetCoords as NormalizedCoords | undefined) === selectedTargetKey
+    );
+  }, [overlays, selectedTargetKey]);
+
+  const filteredLineups = React.useMemo(() => {
+    if (!selectedTargetKey) return lineups;
+    return lineups.filter(
+      (l) => targetKey(l.targetCoords as NormalizedCoords | undefined) === selectedTargetKey
+    );
+  }, [lineups, selectedTargetKey]);
+
+  const targetGroups = React.useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        at: NormalizedCoords;
+        count: number;
+        lineups: string[];
+      }
+    >();
+
+    overlays.forEach(({ lineup }) => {
+      const key = targetKey(lineup.targetCoords as NormalizedCoords | undefined);
+      if (!key || !lineup.targetCoords) return;
+      const existing = map.get(key);
+      if (existing) {
+        existing.count += 1;
+        existing.lineups.push(lineup.name);
+      } else {
+        map.set(key, {
+          at: lineup.targetCoords as NormalizedCoords,
+          count: 1,
+          lineups: [lineup.name]
+        });
+      }
+    });
+
+    return Array.from(map.entries()).map(([key, value]) => ({ key, ...value }));
+  }, [overlays]);
+
+  const multiTargetKeys = React.useMemo(
+    () => new Set(targetGroups.filter((g) => g.count > 1).map((g) => g.key)),
+    [targetGroups]
+  );
+
+  const selectedTargetGroup = React.useMemo(
+    () => targetGroups.find((g) => g.key === selectedTargetKey),
+    [targetGroups, selectedTargetKey]
+  );
 
   return (
     <div style={{ padding: 16, display: 'flex', gap: 16 }}>
@@ -38,63 +98,88 @@ const MapDetail: React.FC = () => {
         </div>
         <h2>Map: {mapId}</h2>
 
-        <div
-          style={{
-            border: '1px solid #ccc',
-            borderRadius: 8,
-            overflow: 'hidden',
-            backgroundImage: mapImage ? `url(${mapImage})` : undefined,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            width: '100%',
-            aspectRatio: `${viewBoxWidth} / ${viewBoxHeight}`
+        <MapCanvas
+          mapImage={mapImage}
+          onNormalizedClick={() => {
+            if (selectedTargetKey) setSelectedTargetKey(null);
           }}
-        >
-          <svg
-            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-            width="100%"
-            height="100%"
-            preserveAspectRatio="xMidYMid meet"
-          >
-
-            {/* draw lineups */}
-            {lineups.map((l, idx) => {
-              const s = toViewBox(l.startCoords as any);
-              const t = toViewBox(l.targetCoords as any);
-              if (!s || !t) return null;
-              const color = ['#ff6b6b', '#4dabf7', '#ffd43b'][idx % 3];
-              return (
-                <g
-                  key={l.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/lineups/${l.id}`)}
-                >
-                  <line
-                    x1={s[0]}
-                    y1={s[1]}
-                    x2={t[0]}
-                    y2={t[1]}
-                    stroke={color}
-                    strokeWidth={4}
-                    strokeOpacity={0.9}
-                  />
-                  <circle cx={s[0]} cy={s[1]} r={8} fill={color} stroke="#000" strokeWidth={1} />
-                  <circle cx={t[0]} cy={t[1]} r={6} fill="#fff" stroke={color} strokeWidth={2} />
-                  <text x={t[0] + 10} y={t[1] - 10} fontSize={16} fill="#222">
-                    {l.name}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
+          lines={filteredOverlays.map(({ lineup, color }) => ({
+            id: `line-${lineup.id}`,
+            from: lineup.startCoords,
+            to: lineup.targetCoords,
+            color,
+            width: 4,
+            onClick: () => navigate(`/lineups/${lineup.id}`)
+          }))}
+          markers={[
+            ...filteredOverlays.map(({ lineup, color }) => ({
+              id: `start-${lineup.id}`,
+              at: lineup.startCoords,
+              fill: color,
+              radius: 8,
+              onClick: () => navigate(`/lineups/${lineup.id}`)
+            })),
+            ...filteredOverlays
+              .filter(({ lineup }) => !multiTargetKeys.has(targetKey(lineup.targetCoords as NormalizedCoords | undefined)))
+              .map(({ lineup, color }) => ({
+                id: `target-${lineup.id}`,
+                at: lineup.targetCoords,
+                fill: '#fff',
+                stroke: color,
+                strokeWidth: 2,
+                radius: 6,
+                onClick: () => navigate(`/lineups/${lineup.id}`)
+              })),
+            ...targetGroups
+              .filter((g) => g.count > 1)
+              .map((g) => ({
+                id: `target-group-${g.key}`,
+                at: g.at,
+                fill: '#111',
+                stroke: '#fff',
+                strokeWidth: 2,
+                radius: 11,
+                onClick: () => setSelectedTargetKey(g.key)
+              }))
+          ]}
+          labels={[
+            ...filteredOverlays.map(({ lineup }) => ({
+              id: `label-${lineup.id}`,
+              at: lineup.targetCoords,
+              text: lineup.name,
+              onClick: () => navigate(`/lineups/${lineup.id}`)
+            })),
+            ...targetGroups
+              .filter((g) => g.count > 1)
+              .map((g) => ({
+                id: `target-group-count-${g.key}`,
+                at: g.at,
+                text: String(g.count),
+                dx: -4,
+                dy: 5,
+                fontSize: 12,
+                fill: '#fff',
+                onClick: () => setSelectedTargetKey(g.key)
+              }))
+          ]}
+        />
       </div>
 
       <aside style={{ width: 360 }}>
         <h3>Lineups on {mapId}</h3>
+        {selectedTargetKey && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+              Showing {filteredLineups.length} lineup(s) at selected target
+              {selectedTargetGroup ? ` (shared by ${selectedTargetGroup.count})` : ''}.
+            </div>
+            <Button size="xs" variant="light" onClick={() => setSelectedTargetKey(null)}>
+              Show all targets
+            </Button>
+          </div>
+        )}
         <div style={{ display: 'grid', gap: 12 }}>
-          {lineups.map((l) => (
+          {filteredLineups.map((l) => (
             <div key={l.id} style={{ border: '1px solid #ddd', padding: 8, borderRadius: 6 }}>
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -111,6 +196,9 @@ const MapDetail: React.FC = () => {
               </div>
             </div>
           ))}
+          {filteredLineups.length === 0 && (
+            <div style={{ color: '#666', fontSize: 13 }}>No lineups match this target.</div>
+          )}
         </div>
       </aside>
     </div>

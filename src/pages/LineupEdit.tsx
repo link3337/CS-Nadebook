@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getMapImage } from '../lib/maps';
+import MapCanvas from '../components/MapCanvas';
+import { getDisplayMapImage } from '../lib/maps';
 import { useLineupsStore } from '../store/lineups';
-
-const viewBoxWidth = 1000;
-const viewBoxHeight = 600;
-
-const toNormalized = (px: number, py: number) =>
-  [px / viewBoxWidth, py / viewBoxHeight] as [number, number];
-const toViewBox = (coords?: [number, number]) => {
-  if (!coords) return null;
-  return [coords[0] * viewBoxWidth, coords[1] * viewBoxHeight] as [number, number];
-};
 
 const LineupEdit: React.FC = () => {
   const { lineupId } = useParams();
@@ -20,10 +11,11 @@ const LineupEdit: React.FC = () => {
   const updateLineup = useLineupsStore((s) => s.updateLineup);
 
   const lineup = getById(lineupId ?? '');
-  const mapImage = getMapImage(lineup?.map ?? '');
+  const mapImage = getDisplayMapImage(lineup?.map);
 
   const [name, setName] = useState(lineup?.name ?? '');
   const [description, setDescription] = useState(lineup?.description ?? '');
+  const [startPosition, setStartPosition] = useState(lineup?.startPosition ?? '');
   const [startCoords, setStartCoords] = useState<[number, number] | undefined>(
     lineup?.startCoords as any
   );
@@ -34,14 +26,8 @@ const LineupEdit: React.FC = () => {
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
 
-  const onSvgClick = (e: React.MouseEvent<SVGElement>) => {
+  const onMapClick = (normalized: [number, number]) => {
     if (mode === 'none') return;
-    const rect = (e.currentTarget as SVGElement).getBoundingClientRect();
-    const px = e.clientX - rect.left;
-    const py = e.clientY - rect.top;
-    const nx = px * (viewBoxWidth / rect.width);
-    const ny = py * (viewBoxHeight / rect.height);
-    const normalized = toNormalized(nx, ny);
     if (mode === 'start') setStartCoords(normalized);
     if (mode === 'target') setTargetCoords(normalized);
   };
@@ -50,6 +36,7 @@ const LineupEdit: React.FC = () => {
     updateLineup(lineup.id, {
       name,
       description,
+      startPosition,
       startCoords: startCoords as any,
       targetCoords: targetCoords as any
     });
@@ -68,6 +55,14 @@ const LineupEdit: React.FC = () => {
           <label>
             Description
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+          </label>
+          <label>
+            Start Position
+            <input
+              value={startPosition}
+              onChange={(e) => setStartPosition(e.target.value)}
+              placeholder="e.g. T Spawn Corner"
+            />
           </label>
 
           <div>
@@ -96,72 +91,33 @@ const LineupEdit: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ border: '1px solid #ccc', borderRadius: 8, overflow: 'hidden' }}>
-            <svg
-              viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-              width="100%"
-              height={400}
-              onClick={onSvgClick}
-              style={{ display: 'block' }}
-            >
-              {mapImage && (
-                <image
-                  href={mapImage}
-                  x={0}
-                  y={0}
-                  width={viewBoxWidth}
-                  height={viewBoxHeight}
-                  preserveAspectRatio="xMidYMid slice"
-                />
-              )}
-              {/* markers */}
-              {startCoords &&
-                (() => {
-                  const p = toViewBox(startCoords);
-                  return (
-                    <circle
-                      cx={p![0]}
-                      cy={p![1]}
-                      r={10}
-                      fill="#4dabf7"
-                      stroke="#000"
-                      strokeWidth={1}
-                    />
-                  );
-                })()}
-              {targetCoords &&
-                (() => {
-                  const p = toViewBox(targetCoords);
-                  return (
-                    <circle
-                      cx={p![0]}
-                      cy={p![1]}
-                      r={8}
-                      fill="#ffd43b"
-                      stroke="#000"
-                      strokeWidth={1}
-                    />
-                  );
-                })()}
-              {startCoords &&
-                targetCoords &&
-                (() => {
-                  const s = toViewBox(startCoords)!;
-                  const t = toViewBox(targetCoords)!;
-                  return (
-                    <line
-                      x1={s[0]}
-                      y1={s[1]}
-                      x2={t[0]}
-                      y2={t[1]}
-                      stroke="#ff6b6b"
-                      strokeWidth={3}
-                      strokeOpacity={0.9}
-                    />
-                  );
-                })()}
-            </svg>
-          </div>
+          <MapCanvas
+            mapImage={mapImage}
+            onNormalizedClick={onMapClick}
+            lines={[
+              {
+                id: 'edit-line',
+                from: startCoords,
+                to: targetCoords,
+                color: '#ff6b6b',
+                width: 3
+              }
+            ]}
+            markers={[
+              {
+                id: 'edit-start',
+                at: startCoords,
+                fill: '#4dabf7',
+                radius: 10
+              },
+              {
+                id: 'edit-target',
+                at: targetCoords,
+                fill: '#ffd43b',
+                radius: 8
+              }
+            ]}
+          />
 
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={save}>Save</button>
