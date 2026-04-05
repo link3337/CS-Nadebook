@@ -6,6 +6,16 @@ import { deleteMediaBlob, getMediaBlob, saveMediaBlob } from '../lib/storage/loc
 import { Lineup } from '../models/lineup';
 import { useLineupsStore } from '../store/lineups';
 
+const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
+  if (fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
+    return items;
+  }
+  const copy = [...items];
+  const [moved] = copy.splice(fromIndex, 1);
+  copy.splice(toIndex, 0, moved);
+  return copy;
+};
+
 const LineupEdit: React.FC = () => {
   const { lineupId } = useParams();
   const navigate = useNavigate();
@@ -36,6 +46,8 @@ const LineupEdit: React.FC = () => {
   });
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
+  const [draggedVideoUrl, setDraggedVideoUrl] = useState<string | null>(null);
   const [mode, setMode] = useState<'none' | 'start' | 'target'>('none');
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
@@ -91,6 +103,29 @@ const LineupEdit: React.FC = () => {
     setUploadedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
+  const moveImageUp = (id: string) => {
+    setUploadedImages((prev) => {
+      const index = prev.findIndex((img) => img.id === id);
+      return moveItem(prev, index, index - 1);
+    });
+  };
+
+  const moveImageDown = (id: string) => {
+    setUploadedImages((prev) => {
+      const index = prev.findIndex((img) => img.id === id);
+      return moveItem(prev, index, index + 1);
+    });
+  };
+
+  const reorderImageByDrag = (dropId: string) => {
+    if (!draggedImageId || draggedImageId === dropId) return;
+    setUploadedImages((prev) => {
+      const fromIndex = prev.findIndex((img) => img.id === draggedImageId);
+      const toIndex = prev.findIndex((img) => img.id === dropId);
+      return moveItem(prev, fromIndex, toIndex);
+    });
+  };
+
   const addVideoUrl = () => {
     const url = videoUrlInput.trim();
     if (!url) return;
@@ -104,6 +139,29 @@ const LineupEdit: React.FC = () => {
 
   const removeVideoUrl = (url: string) => {
     setVideoUrls((prev) => prev.filter((v) => v !== url));
+  };
+
+  const moveVideoUp = (url: string) => {
+    setVideoUrls((prev) => {
+      const index = prev.findIndex((v) => v === url);
+      return moveItem(prev, index, index - 1);
+    });
+  };
+
+  const moveVideoDown = (url: string) => {
+    setVideoUrls((prev) => {
+      const index = prev.findIndex((v) => v === url);
+      return moveItem(prev, index, index + 1);
+    });
+  };
+
+  const reorderVideoByDrag = (dropUrl: string) => {
+    if (!draggedVideoUrl || draggedVideoUrl === dropUrl) return;
+    setVideoUrls((prev) => {
+      const fromIndex = prev.findIndex((v) => v === draggedVideoUrl);
+      const toIndex = prev.findIndex((v) => v === dropUrl);
+      return moveItem(prev, fromIndex, toIndex);
+    });
   };
 
   React.useEffect(() => {
@@ -222,16 +280,27 @@ const LineupEdit: React.FC = () => {
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
               Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota issues.
             </div>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              Reorder with drag and drop, or use arrow buttons.
+            </div>
             <div style={{ marginTop: 8 }}>
               <input type="file" accept="image/*,.gif" multiple onChange={onUploadImages} />
             </div>
 
             {uploadedImages.length > 0 && (
               <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-                {uploadedImages.map((img) => (
+                {uploadedImages.map((img, index) => (
                   <div
                     key={img.id}
                     style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8, display: 'grid', gap: 8 }}
+                    draggable
+                    onDragStart={() => setDraggedImageId(img.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      reorderImageByDrag(img.id);
+                      setDraggedImageId(null);
+                    }}
+                    onDragEnd={() => setDraggedImageId(null)}
                   >
                     <img
                       src={previewUrls[img.id]}
@@ -243,7 +312,21 @@ const LineupEdit: React.FC = () => {
                       value={img.note ?? ''}
                       onChange={(e) => updateImageNote(img.id, e.target.value)}
                     />
-                    <div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => moveImageUp(img.id)}
+                        disabled={index === 0}
+                      >
+                        ↑ Up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveImageDown(img.id)}
+                        disabled={index === uploadedImages.length - 1}
+                      >
+                        ↓ Down
+                      </button>
                       <button type="button" onClick={() => void removeImage(img.id)}>
                         Remove Image
                       </button>
@@ -259,6 +342,9 @@ const LineupEdit: React.FC = () => {
             <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
               MP4 videos are stored as links only (not uploaded), to keep localStorage usage low.
             </div>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              Reorder links with drag and drop, or use arrow buttons.
+            </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <input
                 value={videoUrlInput}
@@ -271,15 +357,37 @@ const LineupEdit: React.FC = () => {
             </div>
             {videoUrls.length > 0 && (
               <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-                {videoUrls.map((url) => (
+                {videoUrls.map((url, index) => (
                   <div
                     key={url}
                     style={{ border: '1px solid #ddd', borderRadius: 6, padding: 8, display: 'grid', gap: 6 }}
+                    draggable
+                    onDragStart={() => setDraggedVideoUrl(url)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      reorderVideoByDrag(url);
+                      setDraggedVideoUrl(null);
+                    }}
+                    onDragEnd={() => setDraggedVideoUrl(null)}
                   >
                     <a href={url} target="_blank" rel="noreferrer">
                       {url}
                     </a>
-                    <div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => moveVideoUp(url)}
+                        disabled={index === 0}
+                      >
+                        ↑ Up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveVideoDown(url)}
+                        disabled={index === videoUrls.length - 1}
+                      >
+                        ↓ Down
+                      </button>
                       <button type="button" onClick={() => removeVideoUrl(url)}>
                         Remove Link
                       </button>
