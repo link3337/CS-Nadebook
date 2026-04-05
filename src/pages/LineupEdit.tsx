@@ -1,4 +1,19 @@
-import React, { useState } from 'react';
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MapCanvas from '../components/MapCanvas';
 import { getDisplayMapImage } from '../lib/maps';
@@ -16,6 +31,146 @@ const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
   return copy;
 };
 
+type SortableImageItemProps = {
+  img: Lineup['uploadedImages'][number];
+  index: number;
+  total: number;
+  previewUrl?: string;
+  onNoteChange: (id: string, note: string) => void;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
+  onRemove: (id: string) => void;
+};
+
+const SortableImageItem: React.FC<SortableImageItemProps> = ({
+  img,
+  index,
+  total,
+  previewUrl,
+  onNoteChange,
+  onMoveUp,
+  onMoveDown,
+  onRemove
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: img.id
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        border: '1px solid #ddd',
+        borderRadius: 8,
+        padding: 8,
+        display: 'grid',
+        gap: 8,
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.75 : 1,
+        cursor: 'grab',
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      <div style={{ fontSize: 12, color: '#555', userSelect: 'none' }}>
+        Drag to reorder {img.fileName ? `(${img.fileName})` : ''}
+      </div>
+      <img
+        src={previewUrl}
+        alt="lineup upload"
+        style={{ width: '100%', maxHeight: 220, objectFit: 'contain', borderRadius: 6 }}
+      />
+      <textarea
+        placeholder="Notes for this image"
+        value={img.note ?? ''}
+        onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        onChange={(e) => onNoteChange(img.id, e.target.value)}
+      />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(img.id)} disabled={index === 0}>
+          ↑ Up
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveDown(img.id)}
+          disabled={index === total - 1}
+        >
+          ↓ Down
+        </button>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(img.id)}>
+          Remove Image
+        </button>
+      </div>
+    </div>
+  );
+};
+
+type SortableVideoItemProps = {
+  url: string;
+  index: number;
+  total: number;
+  onMoveUp: (url: string) => void;
+  onMoveDown: (url: string) => void;
+  onRemove: (url: string) => void;
+};
+
+const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
+  url,
+  index,
+  total,
+  onMoveUp,
+  onMoveDown,
+  onRemove
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: url
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        border: '1px solid #ddd',
+        borderRadius: 6,
+        padding: 8,
+        display: 'grid',
+        gap: 6,
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.75 : 1,
+        cursor: 'grab',
+        background: '#fff'
+      }}
+      {...attributes}
+      {...listeners}
+    >
+      <div style={{ fontSize: 12, color: '#555', userSelect: 'none' }}>Drag to reorder</div>
+      <a href={url} target="_blank" rel="noreferrer" onPointerDown={(e) => e.stopPropagation()}>
+        {url}
+      </a>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(url)} disabled={index === 0}>
+          ↑ Up
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveDown(url)}
+          disabled={index === total - 1}
+        >
+          ↓ Down
+        </button>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(url)}>
+          Remove Link
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const LineupEdit: React.FC = () => {
   const { lineupId } = useParams();
   const navigate = useNavigate();
@@ -31,12 +186,15 @@ const LineupEdit: React.FC = () => {
   const [startCoords, setStartCoords] = useState<[number, number] | undefined>(
     lineup?.startCoords as any
   );
+
   const [targetCoords, setTargetCoords] = useState<[number, number] | undefined>(
     lineup?.targetCoords as any
   );
+
   const [uploadedImages, setUploadedImages] = useState<Lineup['uploadedImages']>(
     lineup?.uploadedImages ?? []
   );
+
   const [videoUrls, setVideoUrls] = useState<string[]>(() => {
     const combined = [
       ...(lineup?.videoUrls ?? []),
@@ -44,11 +202,19 @@ const LineupEdit: React.FC = () => {
     ];
     return Array.from(new Set(combined));
   });
+
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
-  const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
-  const [draggedVideoUrl, setDraggedVideoUrl] = useState<string | null>(null);
   const [mode, setMode] = useState<'none' | 'start' | 'target'>('none');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 }
+    })
+  );
+
+  const imageIds = useMemo(() => uploadedImages.map((img) => img.id), [uploadedImages]);
+  const videoIds = useMemo(() => [...videoUrls], [videoUrls]);
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
 
@@ -117,12 +283,14 @@ const LineupEdit: React.FC = () => {
     });
   };
 
-  const reorderImageByDrag = (dropId: string) => {
-    if (!draggedImageId || draggedImageId === dropId) return;
+  const onImageDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setUploadedImages((prev) => {
-      const fromIndex = prev.findIndex((img) => img.id === draggedImageId);
-      const toIndex = prev.findIndex((img) => img.id === dropId);
-      return moveItem(prev, fromIndex, toIndex);
+      const fromIndex = prev.findIndex((img) => img.id === active.id);
+      const toIndex = prev.findIndex((img) => img.id === over.id);
+      if (fromIndex < 0 || toIndex < 0) return prev;
+      return arrayMove(prev, fromIndex, toIndex);
     });
   };
 
@@ -155,12 +323,14 @@ const LineupEdit: React.FC = () => {
     });
   };
 
-  const reorderVideoByDrag = (dropUrl: string) => {
-    if (!draggedVideoUrl || draggedVideoUrl === dropUrl) return;
+  const onVideoDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setVideoUrls((prev) => {
-      const fromIndex = prev.findIndex((v) => v === draggedVideoUrl);
-      const toIndex = prev.findIndex((v) => v === dropUrl);
-      return moveItem(prev, fromIndex, toIndex);
+      const fromIndex = prev.findIndex((v) => v === active.id);
+      const toIndex = prev.findIndex((v) => v === over.id);
+      if (fromIndex < 0 || toIndex < 0) return prev;
+      return arrayMove(prev, fromIndex, toIndex);
     });
   };
 
@@ -289,50 +459,27 @@ const LineupEdit: React.FC = () => {
 
             {uploadedImages.length > 0 && (
               <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-                {uploadedImages.map((img, index) => (
-                  <div
-                    key={img.id}
-                    style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8, display: 'grid', gap: 8 }}
-                    draggable
-                    onDragStart={() => setDraggedImageId(img.id)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => {
-                      reorderImageByDrag(img.id);
-                      setDraggedImageId(null);
-                    }}
-                    onDragEnd={() => setDraggedImageId(null)}
-                  >
-                    <img
-                      src={previewUrls[img.id]}
-                      alt="lineup upload"
-                      style={{ width: '100%', maxHeight: 220, objectFit: 'contain', borderRadius: 6 }}
-                    />
-                    <textarea
-                      placeholder="Notes for this image"
-                      value={img.note ?? ''}
-                      onChange={(e) => updateImageNote(img.id, e.target.value)}
-                    />
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => moveImageUp(img.id)}
-                        disabled={index === 0}
-                      >
-                        ↑ Up
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveImageDown(img.id)}
-                        disabled={index === uploadedImages.length - 1}
-                      >
-                        ↓ Down
-                      </button>
-                      <button type="button" onClick={() => void removeImage(img.id)}>
-                        Remove Image
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={onImageDragEnd}
+                >
+                  <SortableContext items={imageIds} strategy={verticalListSortingStrategy}>
+                    {uploadedImages.map((img, index) => (
+                      <SortableImageItem
+                        key={img.id}
+                        img={img}
+                        index={index}
+                        total={uploadedImages.length}
+                        previewUrl={previewUrls[img.id]}
+                        onNoteChange={updateImageNote}
+                        onMoveUp={moveImageUp}
+                        onMoveDown={moveImageDown}
+                        onRemove={(id) => void removeImage(id)}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </div>
@@ -357,43 +504,25 @@ const LineupEdit: React.FC = () => {
             </div>
             {videoUrls.length > 0 && (
               <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-                {videoUrls.map((url, index) => (
-                  <div
-                    key={url}
-                    style={{ border: '1px solid #ddd', borderRadius: 6, padding: 8, display: 'grid', gap: 6 }}
-                    draggable
-                    onDragStart={() => setDraggedVideoUrl(url)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => {
-                      reorderVideoByDrag(url);
-                      setDraggedVideoUrl(null);
-                    }}
-                    onDragEnd={() => setDraggedVideoUrl(null)}
-                  >
-                    <a href={url} target="_blank" rel="noreferrer">
-                      {url}
-                    </a>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={() => moveVideoUp(url)}
-                        disabled={index === 0}
-                      >
-                        ↑ Up
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveVideoDown(url)}
-                        disabled={index === videoUrls.length - 1}
-                      >
-                        ↓ Down
-                      </button>
-                      <button type="button" onClick={() => removeVideoUrl(url)}>
-                        Remove Link
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={onVideoDragEnd}
+                >
+                  <SortableContext items={videoIds} strategy={verticalListSortingStrategy}>
+                    {videoUrls.map((url, index) => (
+                      <SortableVideoItem
+                        key={url}
+                        url={url}
+                        index={index}
+                        total={videoUrls.length}
+                        onMoveUp={moveVideoUp}
+                        onMoveDown={moveVideoDown}
+                        onRemove={removeVideoUrl}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </div>
