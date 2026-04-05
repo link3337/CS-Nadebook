@@ -1,6 +1,6 @@
-import React from "react";
-import { useLineupsStore } from "../store/lineups";
-import LineupCard from "../components/LineupCard";
+import React from 'react';
+import { useLineupsStore } from '../store/lineups';
+import LineupCard from '../components/LineupCard';
 
 export const Home: React.FC = () => {
   const lineups = useLineupsStore((s) => s.lineups);
@@ -13,7 +13,13 @@ export const Home: React.FC = () => {
       <h2>Dashboard</h2>
       <section>
         <h3>Recent</h3>
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
+        <div
+          style={{
+            display: 'grid',
+            gap: 12,
+            gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))'
+          }}
+        >
           {recent.map((l) => (
             <LineupCard key={l.id} lineup={l} />
           ))}
@@ -22,7 +28,13 @@ export const Home: React.FC = () => {
 
       <section style={{ marginTop: 24 }}>
         <h3>Favorites</h3>
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
+        <div
+          style={{
+            display: 'grid',
+            gap: 12,
+            gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))'
+          }}
+        >
           {favorites.map((l) => (
             <LineupCard key={l.id} lineup={l} />
           ))}

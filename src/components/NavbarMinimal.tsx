@@ -8,7 +8,7 @@ import {
   IconLogout,
   IconSettings,
   IconSwitchHorizontal,
-  IconUser,
+  IconUser
 } from '@tabler/icons-react';
 import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core';
 import classes from './NavbarMinimal.module.css';
@@ -23,7 +23,12 @@ interface NavbarLinkProps {
 function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
   return (
     <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
-      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined} aria-label={label}>
+      <UnstyledButton
+        onClick={onClick}
+        className={classes.link}
+        data-active={active || undefined}
+        aria-label={label}
+      >
         <Icon size={20} stroke={1.5} />
       </UnstyledButton>
     </Tooltip>
@@ -37,20 +42,24 @@ const mockdata = [
   { icon: IconCalendarStats, label: 'Releases' },
   { icon: IconUser, label: 'Account' },
   { icon: IconFingerprint, label: 'Security' },
-  { icon: IconSettings, label: 'Settings' },
+  { icon: IconSettings, label: 'Settings' }
 ];
 
 export const NavbarMinimal: React.FC = () => {
   const [active, setActive] = useState(0);
 
   const links = mockdata.map((link, index) => (
-    <NavbarLink {...link} key={link.label} active={index === active} onClick={() => setActive(index)} />
+    <NavbarLink
+      {...link}
+      key={link.label}
+      active={index === active}
+      onClick={() => setActive(index)}
+    />
   ));
 
   return (
     <nav className={classes.navbar}>
-      <Center>
-      </Center>
+      <Center></Center>
 
       <div className={classes.navbarMain}>
         <Stack justify="center" gap={0}>

@@ -1,6 +1,6 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useLineupsStore } from "../store/lineups";
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useLineupsStore } from '../store/lineups';
 
 const viewBoxWidth = 1000;
 const viewBoxHeight = 600;
@@ -15,14 +15,17 @@ const MapDetail: React.FC = () => {
   const { mapId } = useParams();
   const navigate = useNavigate();
   const allLineups = useLineupsStore((s) => s.lineups);
-  const lineups = React.useMemo(() => allLineups.filter((l) => l.map === mapId), [allLineups, mapId]);
+  const lineups = React.useMemo(
+    () => allLineups.filter((l) => l.map === mapId),
+    [allLineups, mapId]
+  );
 
   return (
-    <div style={{ padding: 16, display: "flex", gap: 16 }}>
+    <div style={{ padding: 16, display: 'flex', gap: 16 }}>
       <div style={{ flex: 1 }}>
         <h2>Map: {mapId}</h2>
 
-        <div style={{ border: "1px solid #ccc", borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ border: '1px solid #ccc', borderRadius: 8, overflow: 'hidden' }}>
           <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} width="100%" height={400}>
             <defs>
               <linearGradient id="bg" x1="0" x2="1">
@@ -61,10 +64,22 @@ const MapDetail: React.FC = () => {
               const s = toViewBox(l.startCoords as any);
               const t = toViewBox(l.targetCoords as any);
               if (!s || !t) return null;
-              const color = ["#ff6b6b", "#4dabf7", "#ffd43b"][idx % 3];
+              const color = ['#ff6b6b', '#4dabf7', '#ffd43b'][idx % 3];
               return (
-                <g key={l.id} style={{ cursor: "pointer" }} onClick={() => navigate(`/lineups/${l.id}`)}>
-                  <line x1={s[0]} y1={s[1]} x2={t[0]} y2={t[1]} stroke={color} strokeWidth={4} strokeOpacity={0.9} />
+                <g
+                  key={l.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/lineups/${l.id}`)}
+                >
+                  <line
+                    x1={s[0]}
+                    y1={s[1]}
+                    x2={t[0]}
+                    y2={t[1]}
+                    stroke={color}
+                    strokeWidth={4}
+                    strokeOpacity={0.9}
+                  />
                   <circle cx={s[0]} cy={s[1]} r={8} fill={color} stroke="#000" strokeWidth={1} />
                   <circle cx={t[0]} cy={t[1]} r={6} fill="#fff" stroke={color} strokeWidth={2} />
                   <text x={t[0] + 10} y={t[1] - 10} fontSize={16} fill="#222">
@@ -79,13 +94,17 @@ const MapDetail: React.FC = () => {
 
       <aside style={{ width: 360 }}>
         <h3>Lineups on {mapId}</h3>
-        <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: 'grid', gap: 12 }}>
           {lineups.map((l) => (
-            <div key={l.id} style={{ border: "1px solid #ddd", padding: 8, borderRadius: 6 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div key={l.id} style={{ border: '1px solid #ddd', padding: 8, borderRadius: 6 }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div>
                   <strong>{l.name}</strong>
-                  <div style={{ fontSize: 12, color: "#666" }}>{l.startPosition} → {l.target}</div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    {l.startPosition} → {l.target}
+                  </div>
                 </div>
                 <div>
                   <button onClick={() => navigate(`/lineups/${l.id}`)}>Open</button>

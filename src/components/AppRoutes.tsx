@@ -1,13 +1,13 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Home from "../pages/Home";
-import Maps from "../pages/Maps";
-import MapDetail from "../pages/MapDetail";
-import LineupNew from "../pages/LineupNew";
-import LineupDetail from "../pages/LineupDetail";
-import LineupEdit from "../pages/LineupEdit";
-import Practice from "../pages/Practice";
-import Settings from "../pages/Settings";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from '../pages/Home';
+import Maps from '../pages/Maps';
+import MapDetail from '../pages/MapDetail';
+import LineupNew from '../pages/LineupNew';
+import LineupDetail from '../pages/LineupDetail';
+import LineupEdit from '../pages/LineupEdit';
+import Practice from '../pages/Practice';
+import Settings from '../pages/Settings';
 
 export const AppRoutes: React.FC = () => {
   return (

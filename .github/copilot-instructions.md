@@ -8,6 +8,7 @@ The app should be designed so it can be deployed as a normal web app first, whil
 Build a **personal CS2 nade lineup library** focused on **fast retrieval and practice**, not social features.
 
 The app should let the user:
+
 - save lineups
 - browse by map
 - filter by utility type, side, and site
@@ -43,6 +44,7 @@ The app should let the user:
 ## Tech preferences
 
 Preferred stack:
+
 - React
 - TypeScript
 - Vite
@@ -53,6 +55,7 @@ Preferred stack:
 - Mantine
 
 Persistence choice for V1:
+
 - Zustand store with persist middleware
 - localStorage as the persistence layer
 
@@ -61,6 +64,7 @@ You may suggest lightweight alternatives, but do not introduce unnecessary compl
 ## V1 scope
 
 ### Must have
+
 - create, edit, delete lineups
 - local persistence
 - search
@@ -72,12 +76,14 @@ You may suggest lightweight alternatives, but do not introduce unnecessary compl
 - video URL support
 
 ### Nice to have
+
 - import/export JSON
 - pinned or “must know” lineups
 - keyboard shortcuts
 - practice queue
 
 ### Explicitly out of scope for V1
+
 - auth
 - team collaboration
 - comments
@@ -92,12 +98,14 @@ Do not add out-of-scope features unless explicitly asked.
 ## UX guidance
 
 ### The app should feel:
+
 - fast
 - clean
 - practical
 - easy to use during practice
 
 ### Priorities:
+
 1. fast search
 2. clear filtering
 3. simple add/edit flow
@@ -105,6 +113,7 @@ Do not add out-of-scope features unless explicitly asked.
 5. minimal friction
 
 ### Avoid:
+
 - overly dense tables for core browsing
 - unnecessary animations
 - overly clever abstractions
@@ -164,9 +173,9 @@ Keep routes simple and predictable.
 Use a lineup model close to this shape:
 
 ```ts
-export type UtilityType = "smoke" | "flash" | "molotov" | "he";
-export type Side = "t" | "ct";
-export type PracticeState = "new" | "learning" | "solid" | "mastered";
+export type UtilityType = 'smoke' | 'flash' | 'molotov' | 'he';
+export type Side = 't' | 'ct';
+export type PracticeState = 'new' | 'learning' | 'solid' | 'mastered';
 
 export interface Lineup {
   id: string;
@@ -178,12 +187,7 @@ export interface Lineup {
 
   startPosition: string;
   target: string;
-  throwTechnique:
-    | "left_click"
-    | "right_click"
-    | "jumpthrow"
-    | "runthrow"
-    | "walkthrow";
+  throwTechnique: 'left_click' | 'right_click' | 'jumpthrow' | 'runthrow' | 'walkthrow';
 
   crosshairNote?: string;
   description?: string;
@@ -199,3 +203,4 @@ export interface Lineup {
   createdAt: string;
   updatedAt: string;
 }
+```
