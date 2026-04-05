@@ -12,6 +12,15 @@ export const ThrowTechnique = z.enum([
   'walkthrow'
 ]);
 
+export const LocalImageSchema = z.object({
+  id: z.string(),
+  dataUrl: z.string().optional(),
+  blobId: z.string().optional(),
+  fileName: z.string().optional(),
+  mimeType: z.string().optional(),
+  note: z.string().optional()
+});
+
 export const LineupSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -33,6 +42,8 @@ export const LineupSchema = z.object({
   tags: z.array(z.string()).default([]),
 
   imageUrls: z.array(z.string()).default([]),
+  uploadedImages: z.array(LocalImageSchema).default([]),
+  videoUrls: z.array(z.string()).default([]),
   videoUrl: z.string().optional(),
 
   favorite: z.boolean().default(false),
@@ -63,6 +74,8 @@ export const newLineupDefaults = (overrides: Partial<Lineup> = {}): Lineup => {
     description: overrides.description,
     tags: overrides.tags ?? [],
     imageUrls: overrides.imageUrls ?? [],
+    uploadedImages: overrides.uploadedImages ?? [],
+    videoUrls: overrides.videoUrls ?? [],
     videoUrl: overrides.videoUrl,
     favorite: overrides.favorite ?? false,
     practiceState: overrides.practiceState ?? 'new',

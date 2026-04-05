@@ -30,6 +30,8 @@ export const LineupNew: React.FC = () => {
           description: sourceLineup.description,
           tags: sourceLineup.tags,
           imageUrls: sourceLineup.imageUrls,
+          uploadedImages: sourceLineup.uploadedImages,
+          videoUrls: sourceLineup.videoUrls,
           videoUrl: sourceLineup.videoUrl,
           // Force a new start location for the variant
           startPosition: '',

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import MapCanvas from '../components/MapCanvas';
 import { getDisplayMapImage } from '../lib/maps';
+import { getMediaBlob } from '../lib/storage/localMediaDb';
 import { useLineupsStore } from '../store/lineups';
 
 export const LineupDetail: React.FC = () => {
@@ -15,6 +16,54 @@ export const LineupDetail: React.FC = () => {
     if (!lineup?.map) return undefined;
     return getDisplayMapImage(lineup.map);
   }, [lineup?.map]);
+
+  const videoUrls = React.useMemo(() => {
+    if (!lineup) return [];
+    const combined = [
+      ...(lineup.videoUrls ?? []),
+      ...(lineup.videoUrl ? [lineup.videoUrl] : [])
+    ];
+    return Array.from(new Set(combined));
+  }, [lineup]);
+
+  const [previewUrls, setPreviewUrls] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    if (!lineup) return;
+
+    let active = true;
+    const generatedUrls: string[] = [];
+
+    const loadPreviews = async () => {
+      const next: Record<string, string> = {};
+
+      for (const img of lineup.uploadedImages) {
+        if (img.dataUrl) {
+          next[img.id] = img.dataUrl;
+          continue;
+        }
+        if (!img.blobId) continue;
+        const blob = await getMediaBlob(img.blobId);
+        if (!blob) continue;
+        const objectUrl = URL.createObjectURL(blob);
+        generatedUrls.push(objectUrl);
+        next[img.id] = objectUrl;
+      }
+
+      if (active) {
+        setPreviewUrls(next);
+      } else {
+        generatedUrls.forEach((url) => URL.revokeObjectURL(url));
+      }
+    };
+
+    loadPreviews();
+
+    return () => {
+      active = false;
+      generatedUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [lineup]);
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
 
@@ -56,6 +105,44 @@ export const LineupDetail: React.FC = () => {
           }
         ]}
       />
+
+      {lineup.uploadedImages.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <h3>Uploaded Images</h3>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {lineup.uploadedImages.map((img) => (
+              <div key={img.id} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8 }}>
+                <img
+                  src={previewUrls[img.id]}
+                  alt="lineup uploaded"
+                  style={{ width: '100%', maxHeight: 320, objectFit: 'contain', borderRadius: 6 }}
+                />
+                {img.note && <div style={{ marginTop: 8, fontSize: 14, color: '#444' }}>{img.note}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {videoUrls.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <h3>MP4 Links</h3>
+          <div style={{ display: 'grid', gap: 12 }}>
+            {videoUrls.map((url) => (
+              <div key={url} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8 }}>
+                <video controls preload="metadata" style={{ width: '100%', borderRadius: 6 }}>
+                  <source src={url} type="video/mp4" />
+                </video>
+                <div style={{ marginTop: 8 }}>
+                  <a href={url} target="_blank" rel="noreferrer">
+                    Open MP4 link
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <Link to={`/lineups/${lineup.id}/edit`}>Edit</Link>

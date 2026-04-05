@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MapCanvas from '../components/MapCanvas';
 import { getDisplayMapImage } from '../lib/maps';
+import { deleteMediaBlob, getMediaBlob, saveMediaBlob } from '../lib/storage/localMediaDb';
+import { Lineup } from '../models/lineup';
 import { useLineupsStore } from '../store/lineups';
 
 const LineupEdit: React.FC = () => {
@@ -22,6 +24,18 @@ const LineupEdit: React.FC = () => {
   const [targetCoords, setTargetCoords] = useState<[number, number] | undefined>(
     lineup?.targetCoords as any
   );
+  const [uploadedImages, setUploadedImages] = useState<Lineup['uploadedImages']>(
+    lineup?.uploadedImages ?? []
+  );
+  const [videoUrls, setVideoUrls] = useState<string[]>(() => {
+    const combined = [
+      ...(lineup?.videoUrls ?? []),
+      ...(lineup?.videoUrl ? [lineup.videoUrl] : [])
+    ];
+    return Array.from(new Set(combined));
+  });
+  const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const [mode, setMode] = useState<'none' | 'start' | 'target'>('none');
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
@@ -37,11 +51,95 @@ const LineupEdit: React.FC = () => {
       name,
       description,
       startPosition,
+      uploadedImages,
+      videoUrls,
+      videoUrl: videoUrls[0],
       startCoords: startCoords as any,
       targetCoords: targetCoords as any
     });
     navigate(`/lineups/${lineup.id}`);
   };
+
+  const onUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const entries = await Promise.all(
+      files.map(async (file, idx) => {
+        const blobId = await saveMediaBlob(file);
+        return {
+          id: `${Date.now()}-${idx}`,
+          blobId,
+          fileName: file.name,
+          mimeType: file.type,
+          note: ''
+        };
+      })
+    );
+    setUploadedImages((prev) => [...prev, ...entries]);
+    e.target.value = '';
+  };
+
+  const updateImageNote = (id: string, note: string) => {
+    setUploadedImages((prev) => prev.map((img) => (img.id === id ? { ...img, note } : img)));
+  };
+
+  const removeImage = async (id: string) => {
+    const target = uploadedImages.find((img) => img.id === id);
+    if (target?.blobId) {
+      await deleteMediaBlob(target.blobId);
+    }
+    setUploadedImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const addVideoUrl = () => {
+    const url = videoUrlInput.trim();
+    if (!url) return;
+    const normalized = url.toLowerCase();
+    if (!normalized.endsWith('.mp4') && !normalized.includes('.mp4?')) {
+      return;
+    }
+    setVideoUrls((prev) => (prev.includes(url) ? prev : [...prev, url]));
+    setVideoUrlInput('');
+  };
+
+  const removeVideoUrl = (url: string) => {
+    setVideoUrls((prev) => prev.filter((v) => v !== url));
+  };
+
+  React.useEffect(() => {
+    let active = true;
+    const generatedUrls: string[] = [];
+
+    const loadPreviews = async () => {
+      const next: Record<string, string> = {};
+
+      for (const img of uploadedImages) {
+        if (img.dataUrl) {
+          next[img.id] = img.dataUrl;
+          continue;
+        }
+        if (!img.blobId) continue;
+        const blob = await getMediaBlob(img.blobId);
+        if (!blob) continue;
+        const objectUrl = URL.createObjectURL(blob);
+        generatedUrls.push(objectUrl);
+        next[img.id] = objectUrl;
+      }
+
+      if (active) {
+        setPreviewUrls(next);
+      } else {
+        generatedUrls.forEach((url) => URL.revokeObjectURL(url));
+      }
+    };
+
+    loadPreviews();
+
+    return () => {
+      active = false;
+      generatedUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [uploadedImages]);
 
   return (
     <div style={{ padding: 16, display: 'flex', gap: 16 }}>
@@ -118,6 +216,79 @@ const LineupEdit: React.FC = () => {
               }
             ]}
           />
+
+          <div style={{ marginTop: 8 }}>
+            <strong>Local Images + Notes</strong>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota issues.
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <input type="file" accept="image/*,.gif" multiple onChange={onUploadImages} />
+            </div>
+
+            {uploadedImages.length > 0 && (
+              <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+                {uploadedImages.map((img) => (
+                  <div
+                    key={img.id}
+                    style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8, display: 'grid', gap: 8 }}
+                  >
+                    <img
+                      src={previewUrls[img.id]}
+                      alt="lineup upload"
+                      style={{ width: '100%', maxHeight: 220, objectFit: 'contain', borderRadius: 6 }}
+                    />
+                    <textarea
+                      placeholder="Notes for this image"
+                      value={img.note ?? ''}
+                      onChange={(e) => updateImageNote(img.id, e.target.value)}
+                    />
+                    <div>
+                      <button type="button" onClick={() => void removeImage(img.id)}>
+                        Remove Image
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: 8 }}>
+            <strong>MP4 Links</strong>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+              MP4 videos are stored as links only (not uploaded), to keep localStorage usage low.
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <input
+                value={videoUrlInput}
+                onChange={(e) => setVideoUrlInput(e.target.value)}
+                placeholder="https://.../demo.mp4"
+              />
+              <button type="button" onClick={addVideoUrl}>
+                Add MP4
+              </button>
+            </div>
+            {videoUrls.length > 0 && (
+              <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                {videoUrls.map((url) => (
+                  <div
+                    key={url}
+                    style={{ border: '1px solid #ddd', borderRadius: 6, padding: 8, display: 'grid', gap: 6 }}
+                  >
+                    <a href={url} target="_blank" rel="noreferrer">
+                      {url}
+                    </a>
+                    <div>
+                      <button type="button" onClick={() => removeVideoUrl(url)}>
+                        Remove Link
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={save}>Save</button>
