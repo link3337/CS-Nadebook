@@ -160,10 +160,12 @@ const MapDetail: React.FC = () => {
               .map(({ lineup, color }) => ({
                 id: `target-${lineup.id}`,
                 at: lineup.targetCoords,
+                markerShape: 'utility-target',
+                utilityType: lineup.utilityType,
                 fill: '#fff',
                 stroke: color,
                 strokeWidth: 2,
-                radius: 6,
+                radius: 8,
                 onClick: () => navigate(`/lineups/${lineup.id}`)
               })),
             ...targetGroups

@@ -1,3 +1,4 @@
+import { Button } from '@mantine/core';
 import React from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import BackButton from '../components/BackButton';
@@ -76,6 +77,14 @@ export const LineupDetail: React.FC = () => {
       <div>
         {lineup.map} • {lineup.site} • {lineup.utilityType}
       </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 10, marginBottom: 12 }}>
+        <Button component={Link} to={`/lineups/${lineup.id}/edit`} size="xs">
+          Edit
+        </Button>
+        <Button component={Link} to={`/lineups/new?cloneFrom=${lineup.id}`} variant="light" size="xs">
+          Add Same Target Variant
+        </Button>
+      </div>
       <p>{lineup.description}</p>
 
       <MapCanvas
@@ -100,8 +109,11 @@ export const LineupDetail: React.FC = () => {
           {
             id: `target-${lineup.id}`,
             at: lineup.targetCoords,
-            fill: '#ffd43b',
-            radius: 8
+            markerShape: 'utility-target',
+            utilityType: lineup.utilityType,
+            radius: 9,
+            stroke: '#111',
+            strokeWidth: 1.2
           }
         ]}
       />
@@ -144,12 +156,6 @@ export const LineupDetail: React.FC = () => {
         </div>
       )}
 
-      <div>
-        <Link to={`/lineups/${lineup.id}/edit`}>Edit</Link>
-      </div>
-      <div>
-        <Link to={`/lineups/new?cloneFrom=${lineup.id}`}>Add Same Target Variant</Link>
-      </div>
     </div>
   );
 };

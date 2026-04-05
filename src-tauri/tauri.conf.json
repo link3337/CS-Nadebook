@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "cs2-nadebook",
   "version": "0.1.0",
-  "identifier": "com.lingo.nadebook",
+  "identifier": "com.lingo.cs2-nadebook",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,10 @@
       {
         "title": "CS2 Nadebook",
         "width": 1600,
-        "height": 900
+        "height": 900,
+        "zoomHotkeysEnabled": true,
+        "center": true,
+        "resizable": true
       }
     ],
     "security": {

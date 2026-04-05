@@ -4,6 +4,7 @@ export const MAP_VIEW_WIDTH = 1000;
 export const MAP_VIEW_HEIGHT = 600;
 
 export type NormalizedCoords = [number, number];
+export type UtilityType = 'smoke' | 'flash' | 'molotov' | 'he';
 
 type MapLine = {
     id: string;
@@ -22,6 +23,8 @@ type MapMarker = {
     fill?: string;
     stroke?: string;
     strokeWidth?: number;
+    markerShape?: 'circle' | 'utility-target';
+    utilityType?: UtilityType;
     onClick?: () => void;
 };
 
@@ -48,6 +51,75 @@ type MapCanvasProps = {
 const toViewBox = (coords?: NormalizedCoords): [number, number] | null => {
     if (!coords) return null;
     return [coords[0] * MAP_VIEW_WIDTH, coords[1] * MAP_VIEW_HEIGHT];
+};
+
+const renderUtilityTargetShape = (
+    marker: MapMarker,
+    x: number,
+    y: number,
+    onClick?: (e: React.MouseEvent<SVGGElement>) => void
+) => {
+    const r = marker.radius ?? 8;
+    const stroke = marker.stroke ?? '#111';
+    const strokeWidth = marker.strokeWidth ?? 1;
+
+    const bgByUtility: Record<UtilityType, string> = {
+        smoke: '#94a3b8',
+        molotov: '#f97316',
+        flash: '#fde047',
+        he: '#22c55e'
+    };
+
+    const utility = marker.utilityType;
+    const bg = utility ? bgByUtility[utility] : marker.fill ?? '#4dabf7';
+
+    const iconPath = (() => {
+        if (utility === 'smoke') {
+            return (
+                <path
+                    d="M7.8 14.5c-1.9 0-3.3-1.4-3.3-3.1 0-1.7 1.4-3.1 3.3-3.1.4-2.1 2.2-3.5 4.5-3.5 2 0 3.8 1.2 4.4 3 2 0 3.6 1.5 3.6 3.4 0 1.9-1.6 3.4-3.6 3.4H7.8z"
+                    fill="#ffffff"
+                />
+            );
+        }
+
+        if (utility === 'molotov') {
+            return (
+                <path
+                    d="M12 3.5c1.2 1.9.8 3.3-.2 4.5 1.7.3 3.2 1.7 3.2 3.8 0 2.3-1.8 4.2-4.1 4.2-2.1 0-3.9-1.5-4-3.7-.1-1.9 1.2-3.3 2.7-4.2.9-.6 1.6-1.3 1.9-2.2.2-.8.1-1.6.5-2.4z"
+                    fill="#fff7ed"
+                />
+            );
+        }
+
+        if (utility === 'flash') {
+            return (
+                <path
+                    d="M11.8 4l1.7 4.1 4.5.3-3.4 3 1.1 4.4-3.9-2.4-3.8 2.4 1-4.4-3.4-3 4.5-.3L11.8 4z"
+                    fill="#111827"
+                />
+            );
+        }
+
+        if (utility === 'he') {
+            return (
+                <g>
+                    <circle cx="12" cy="12" r="4.2" fill="#ecfeff" />
+                    <rect x="11.3" y="5.1" width="1.4" height="2.4" rx="0.5" fill="#ecfeff" />
+                    <path d="M9 6.2h6" stroke="#ecfeff" strokeWidth="1.3" strokeLinecap="round" />
+                </g>
+            );
+        }
+
+        return <circle cx="12" cy="12" r="4" fill="#ffffff" />;
+    })();
+
+    return (
+        <g onClick={onClick}>
+            <circle cx={x} cy={y} r={r} fill={bg} stroke={stroke} strokeWidth={strokeWidth} />
+            <g transform={`translate(${x - r}, ${y - r}) scale(${(r * 2) / 24})`}>{iconPath}</g>
+        </g>
+    );
 };
 
 const toNormalizedFromClient = (
@@ -140,6 +212,21 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
                 {markers.map((marker) => {
                     const point = toViewBox(marker.at);
                     if (!point) return null;
+                    const markerClick =
+                        marker.onClick
+                            ? (e: React.MouseEvent<SVGElement | SVGGElement>) => {
+                                e.stopPropagation();
+                                marker.onClick?.();
+                            }
+                            : undefined;
+
+                    if (marker.markerShape === 'utility-target') {
+                        return (
+                            <g key={marker.id} style={marker.onClick ? { cursor: 'pointer' } : undefined}>
+                                {renderUtilityTargetShape(marker, point[0], point[1], markerClick as any)}
+                            </g>
+                        );
+                    }
                     return (
                         <circle
                             key={marker.id}

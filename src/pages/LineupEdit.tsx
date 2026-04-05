@@ -21,6 +21,13 @@ import { deleteMediaBlob, getMediaBlob, saveMediaBlob } from '../lib/storage/loc
 import { Lineup } from '../models/lineup';
 import { useLineupsStore } from '../store/lineups';
 
+const utilityTypeOptions: Array<{ value: Lineup['utilityType']; label: string }> = [
+  { value: 'smoke', label: 'Smoke' },
+  { value: 'flash', label: 'Flash' },
+  { value: 'he', label: 'HE' },
+  { value: 'molotov', label: 'Molotov' }
+];
+
 const moveItem = <T,>(items: T[], fromIndex: number, toIndex: number) => {
   if (fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
     return items;
@@ -183,6 +190,9 @@ const LineupEdit: React.FC = () => {
   const [name, setName] = useState(lineup?.name ?? '');
   const [description, setDescription] = useState(lineup?.description ?? '');
   const [startPosition, setStartPosition] = useState(lineup?.startPosition ?? '');
+  const [utilityType, setUtilityType] = useState<Lineup['utilityType']>(
+    lineup?.utilityType ?? 'smoke'
+  );
   const [startCoords, setStartCoords] = useState<[number, number] | undefined>(
     lineup?.startCoords as any
   );
@@ -229,6 +239,7 @@ const LineupEdit: React.FC = () => {
       name,
       description,
       startPosition,
+      utilityType,
       uploadedImages,
       videoUrls,
       videoUrl: videoUrls[0],
@@ -391,6 +402,34 @@ const LineupEdit: React.FC = () => {
             />
           </label>
 
+          <fieldset style={{ border: '1px solid #ddd', borderRadius: 8, padding: 10 }}>
+            <legend style={{ padding: '0 6px' }}>Nade Type</legend>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {utilityTypeOptions.map((option) => (
+                <label
+                  key={option.value}
+                  style={{
+                    border: '1px solid #ccc',
+                    borderRadius: 999,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                    background: utilityType === option.value ? '#e7f5ff' : '#fff'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="utilityType"
+                    value={option.value}
+                    checked={utilityType === option.value}
+                    onChange={() => setUtilityType(option.value)}
+                    style={{ marginRight: 6 }}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
           <div>
             <strong>Coordinate Picker</strong>
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
@@ -439,8 +478,11 @@ const LineupEdit: React.FC = () => {
               {
                 id: 'edit-target',
                 at: targetCoords,
-                fill: '#ffd43b',
-                radius: 8
+                markerShape: 'utility-target',
+                utilityType,
+                radius: 9,
+                stroke: '#111',
+                strokeWidth: 1.2
               }
             ]}
           />
