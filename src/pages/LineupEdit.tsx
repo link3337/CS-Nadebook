@@ -13,6 +13,19 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import {
+  Badge,
+  Button,
+  Divider,
+  Fieldset,
+  Group,
+  Paper,
+  Radio,
+  Stack,
+  Text,
+  TextInput,
+  Textarea,
+} from '@mantine/core';
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import MapCanvas from '../components/MapCanvas';
@@ -64,12 +77,12 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
   });
 
   return (
-    <div
+    <Paper
       ref={setNodeRef}
+      withBorder
+      radius="md"
+      p="sm"
       style={{
-        border: '1px solid #ddd',
-        borderRadius: 8,
-        padding: 8,
         display: 'grid',
         gap: 8,
         transform: CSS.Transform.toString(transform),
@@ -80,38 +93,40 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
       {...attributes}
       {...listeners}
     >
-      <div style={{ fontSize: 12, color: '#555', userSelect: 'none' }}>
+      <Text size="xs" c="dimmed" style={{ userSelect: 'none' }}>
         Drag to reorder {img.fileName ? `(${img.fileName})` : ''}
-      </div>
+      </Text>
       <img
         src={previewUrl}
         alt="lineup upload"
         style={{ width: '100%', maxHeight: 220, objectFit: 'contain', borderRadius: 6 }}
       />
-      <textarea
+      <Textarea
         placeholder="Notes for this image"
         value={img.note ?? ''}
         onPointerDown={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
         onChange={(e) => onNoteChange(img.id, e.target.value)}
       />
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(img.id)} disabled={index === 0}>
+      <Group gap="xs" wrap="wrap">
+        <Button type="button" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(img.id)} disabled={index === 0}>
           ↑ Up
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="light"
+          size="xs"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onMoveDown(img.id)}
           disabled={index === total - 1}
         >
           ↓ Down
-        </button>
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(img.id)}>
+        </Button>
+        <Button type="button" color="red" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(img.id)}>
           Remove Image
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Group>
+    </Paper>
   );
 };
 
@@ -137,44 +152,45 @@ const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
   });
 
   return (
-    <div
+    <Paper
       ref={setNodeRef}
+      withBorder
+      radius="md"
+      p="sm"
       style={{
-        border: '1px solid #ddd',
-        borderRadius: 6,
-        padding: 8,
         display: 'grid',
         gap: 6,
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.75 : 1,
         cursor: 'grab',
-        background: '#fff'
       }}
       {...attributes}
       {...listeners}
     >
-      <div style={{ fontSize: 12, color: '#555', userSelect: 'none' }}>Drag to reorder</div>
+      <Text size="xs" c="dimmed" style={{ userSelect: 'none' }}>Drag to reorder</Text>
       <a href={url} target="_blank" rel="noreferrer" onPointerDown={(e) => e.stopPropagation()}>
         {url}
       </a>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(url)} disabled={index === 0}>
+      <Group gap="xs" wrap="wrap">
+        <Button type="button" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(url)} disabled={index === 0}>
           ↑ Up
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="light"
+          size="xs"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => onMoveDown(url)}
           disabled={index === total - 1}
         >
           ↓ Down
-        </button>
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(url)}>
+        </Button>
+        <Button type="button" color="red" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(url)}>
           Remove Link
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Group>
+    </Paper>
   );
 };
 
@@ -225,6 +241,8 @@ const LineupEdit: React.FC = () => {
 
   const imageIds = useMemo(() => uploadedImages.map((img) => img.id), [uploadedImages]);
   const videoIds = useMemo(() => [...videoUrls], [videoUrls]);
+  const utilityLabel =
+    utilityTypeOptions.find((option) => option.value === utilityType)?.label ?? utilityType;
 
   if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
 
@@ -381,80 +399,69 @@ const LineupEdit: React.FC = () => {
   }, [uploadedImages]);
 
   return (
-    <div style={{ padding: 16, display: 'flex', gap: 16 }}>
-      <div style={{ flex: 1 }}>
-        <h2>Edit Lineup</h2>
-        <div style={{ display: 'grid', gap: 8, maxWidth: 640 }}>
-          <label>
-            Name
-            <input value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <label>
-            Description
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-          </label>
-          <label>
-            Start Position
-            <input
-              value={startPosition}
-              onChange={(e) => setStartPosition(e.target.value)}
-              placeholder="e.g. T Spawn Corner"
-            />
-          </label>
+    <Group align="flex-start" gap="md" style={{ padding: 16 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Stack gap="sm" maw={760}>
+          <Text fw={700} size="xl">Edit Lineup</Text>
 
-          <fieldset style={{ border: '1px solid #ddd', borderRadius: 8, padding: 10 }}>
-            <legend style={{ padding: '0 6px' }}>Nade Type</legend>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {utilityTypeOptions.map((option) => (
-                <label
-                  key={option.value}
-                  style={{
-                    border: '1px solid #ccc',
-                    borderRadius: 999,
-                    padding: '6px 10px',
-                    cursor: 'pointer',
-                    background: utilityType === option.value ? '#e7f5ff' : '#fff'
+          <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+
+          <Textarea
+            label="Description"
+            minRows={2}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          <TextInput
+            label="Start Position"
+            value={startPosition}
+            onChange={(e) => setStartPosition(e.target.value)}
+            placeholder="e.g. T Spawn Corner"
+          />
+
+          <Fieldset legend="Nade Type">
+            <Radio.Group value={utilityType} onChange={(value) => setUtilityType(value as Lineup['utilityType'])}>
+              <Group gap="md">
+                {utilityTypeOptions.map((option) => (
+                  <Radio key={option.value} value={option.value} label={option.label} />
+                ))}
+              </Group>
+            </Radio.Group>
+          </Fieldset>
+
+          <Paper withBorder radius="md" p="sm">
+            <Stack gap="xs">
+              <Text fw={600}>Coordinate Picker</Text>
+              <Group gap="xs">
+                <Button
+                  variant={mode === 'start' ? 'filled' : 'light'}
+                  size="xs"
+                  onClick={() => setMode(mode === 'start' ? 'none' : 'start')}
+                >
+                  {mode === 'start' ? 'Setting start (click map)' : 'Set Start'}
+                </Button>
+                <Button
+                  variant={mode === 'target' ? 'filled' : 'light'}
+                  size="xs"
+                  onClick={() => setMode(mode === 'target' ? 'none' : 'target')}
+                >
+                  {mode === 'target' ? 'Setting target (click map)' : 'Set Target'}
+                </Button>
+                <Button
+                  variant="light"
+                  color="gray"
+                  size="xs"
+                  onClick={() => {
+                    setStartCoords(undefined);
+                    setTargetCoords(undefined);
                   }}
                 >
-                  <input
-                    type="radio"
-                    name="utilityType"
-                    value={option.value}
-                    checked={utilityType === option.value}
-                    onChange={() => setUtilityType(option.value)}
-                    style={{ marginRight: 6 }}
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <div>
-            <strong>Coordinate Picker</strong>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button
-                onClick={() => setMode(mode === 'start' ? 'none' : 'start')}
-                style={{ background: mode === 'start' ? '#ddd' : undefined }}
-              >
-                {mode === 'start' ? 'Setting start (click map)' : 'Set Start'}
-              </button>
-              <button
-                onClick={() => setMode(mode === 'target' ? 'none' : 'target')}
-                style={{ background: mode === 'target' ? '#ddd' : undefined }}
-              >
-                {mode === 'target' ? 'Setting target (click map)' : 'Set Target'}
-              </button>
-              <button
-                onClick={() => {
-                  setStartCoords(undefined);
-                  setTargetCoords(undefined);
-                }}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
+                  Clear
+                </Button>
+              </Group>
+            </Stack>
+          </Paper>
 
           <MapCanvas
             mapImage={mapImage}
@@ -487,109 +494,179 @@ const LineupEdit: React.FC = () => {
             ]}
           />
 
-          <div style={{ marginTop: 8 }}>
-            <strong>Local Images + Notes</strong>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota issues.
-            </div>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              Reorder with drag and drop, or use arrow buttons.
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <input type="file" accept="image/*,.gif" multiple onChange={onUploadImages} />
-            </div>
-
-            {uploadedImages.length > 0 && (
-              <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={onImageDragEnd}
-                >
-                  <SortableContext items={imageIds} strategy={verticalListSortingStrategy}>
-                    {uploadedImages.map((img, index) => (
-                      <SortableImageItem
-                        key={img.id}
-                        img={img}
-                        index={index}
-                        total={uploadedImages.length}
-                        previewUrl={previewUrls[img.id]}
-                        onNoteChange={updateImageNote}
-                        onMoveUp={moveImageUp}
-                        onMoveDown={moveImageDown}
-                        onRemove={(id) => void removeImage(id)}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
+          <Paper withBorder radius="md" p="sm">
+            <Stack gap="xs">
+              <Text fw={600}>Local Images + Notes</Text>
+              <Text size="xs" c="dimmed">
+                Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota issues.
+              </Text>
+              <Text size="xs" c="dimmed">
+                Reorder with drag and drop, or use arrow buttons.
+              </Text>
+              <div>
+                <input type="file" accept="image/*,.gif" multiple onChange={onUploadImages} />
               </div>
-            )}
-          </div>
 
-          <div style={{ marginTop: 8 }}>
-            <strong>MP4 Links</strong>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              MP4 videos are stored as links only (not uploaded), to keep localStorage usage low.
-            </div>
-            <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-              Reorder links with drag and drop, or use arrow buttons.
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <input
-                value={videoUrlInput}
-                onChange={(e) => setVideoUrlInput(e.target.value)}
-                placeholder="https://.../demo.mp4"
-              />
-              <button type="button" onClick={addVideoUrl}>
-                Add MP4
-              </button>
-            </div>
-            {videoUrls.length > 0 && (
-              <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={onVideoDragEnd}
-                >
-                  <SortableContext items={videoIds} strategy={verticalListSortingStrategy}>
-                    {videoUrls.map((url, index) => (
-                      <SortableVideoItem
-                        key={url}
-                        url={url}
-                        index={index}
-                        total={videoUrls.length}
-                        onMoveUp={moveVideoUp}
-                        onMoveDown={moveVideoDown}
-                        onRemove={removeVideoUrl}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
-              </div>
-            )}
-          </div>
+              {uploadedImages.length > 0 && (
+                <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={onImageDragEnd}
+                  >
+                    <SortableContext items={imageIds} strategy={verticalListSortingStrategy}>
+                      {uploadedImages.map((img, index) => (
+                        <SortableImageItem
+                          key={img.id}
+                          img={img}
+                          index={index}
+                          total={uploadedImages.length}
+                          previewUrl={previewUrls[img.id]}
+                          onNoteChange={updateImageNote}
+                          onMoveUp={moveImageUp}
+                          onMoveDown={moveImageDown}
+                          onRemove={(id) => void removeImage(id)}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
+            </Stack>
+          </Paper>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={save}>Save</button>
-            <button onClick={() => navigate(-1)}>Cancel</button>
-          </div>
-        </div>
+          <Paper withBorder radius="md" p="sm">
+            <Stack gap="xs">
+              <Text fw={600}>MP4 Links</Text>
+              <Text size="xs" c="dimmed">
+                MP4 videos are stored as links only (not uploaded), to keep localStorage usage low.
+              </Text>
+              <Text size="xs" c="dimmed">
+                Reorder links with drag and drop, or use arrow buttons.
+              </Text>
+              <Group gap="xs" align="flex-end">
+                <TextInput
+                  label="MP4 URL"
+                  value={videoUrlInput}
+                  onChange={(e) => setVideoUrlInput(e.target.value)}
+                  placeholder="https://.../demo.mp4"
+                />
+                <Button type="button" onClick={addVideoUrl}>
+                  Add MP4
+                </Button>
+              </Group>
+              {videoUrls.length > 0 && (
+                <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={onVideoDragEnd}
+                  >
+                    <SortableContext items={videoIds} strategy={verticalListSortingStrategy}>
+                      {videoUrls.map((url, index) => (
+                        <SortableVideoItem
+                          key={url}
+                          url={url}
+                          index={index}
+                          total={videoUrls.length}
+                          onMoveUp={moveVideoUp}
+                          onMoveDown={moveVideoDown}
+                          onRemove={removeVideoUrl}
+                        />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
+            </Stack>
+          </Paper>
+
+          <Divider />
+          <Group gap="xs">
+            <Button onClick={save}>Save</Button>
+            <Button variant="light" color="gray" onClick={() => navigate(-1)}>Cancel</Button>
+          </Group>
+        </Stack>
       </div>
 
-      <aside style={{ width: 360 }}>
-        <h3>Preview</h3>
-        <div style={{ border: '1px solid #ddd', padding: 8, borderRadius: 6 }}>
-          <div>
-            <strong>Start:</strong>{' '}
-            {startCoords ? `${startCoords[0].toFixed(3)}, ${startCoords[1].toFixed(3)}` : '—'}
-          </div>
-          <div>
-            <strong>Target:</strong>{' '}
-            {targetCoords ? `${targetCoords[0].toFixed(3)}, ${targetCoords[1].toFixed(3)}` : '—'}
-          </div>
-        </div>
+      <aside style={{ width: 360, position: 'sticky', top: 12 }}>
+        <Paper withBorder radius="md" p="sm">
+          <Text fw={600} mb={8}>Preview</Text>
+          <Stack gap="xs">
+            <Group gap={6}>
+              <Badge variant="light">{utilityLabel}</Badge>
+              <Badge variant="light" color={startCoords ? 'teal' : 'gray'}>
+                Start {startCoords ? 'set' : 'missing'}
+              </Badge>
+              <Badge variant="light" color={targetCoords ? 'teal' : 'gray'}>
+                Target {targetCoords ? 'set' : 'missing'}
+              </Badge>
+            </Group>
+
+            <MapCanvas
+              mapImage={mapImage}
+              style={{ maxHeight: 210 }}
+              lines={[
+                {
+                  id: 'preview-line',
+                  from: startCoords,
+                  to: targetCoords,
+                  color: '#ff6b6b',
+                  width: 3
+                }
+              ]}
+              markers={[
+                {
+                  id: 'preview-start',
+                  at: startCoords,
+                  fill: '#4dabf7',
+                  radius: 9
+                },
+                {
+                  id: 'preview-target',
+                  at: targetCoords,
+                  markerShape: 'utility-target',
+                  utilityType,
+                  radius: 8,
+                  stroke: '#111',
+                  strokeWidth: 1.1
+                }
+              ]}
+            />
+
+            <Group gap={6}>
+              <Badge variant="dot" color="blue">
+                {uploadedImages.length} image(s)
+              </Badge>
+              <Badge variant="dot" color="grape">
+                {videoUrls.length} mp4 link(s)
+              </Badge>
+              <Badge variant="dot" color={mode === 'none' ? 'gray' : 'orange'}>
+                Mode: {mode}
+              </Badge>
+            </Group>
+
+            <Text size="sm" c="dimmed">
+              Start: {startCoords ? `${startCoords[0].toFixed(3)}, ${startCoords[1].toFixed(3)}` : '—'}
+            </Text>
+            <Text size="sm" c="dimmed">
+              Target: {targetCoords ? `${targetCoords[0].toFixed(3)}, ${targetCoords[1].toFixed(3)}` : '—'}
+            </Text>
+
+            {uploadedImages[0] && previewUrls[uploadedImages[0].id] && (
+              <Paper withBorder radius="sm" p={6}>
+                <Text size="xs" c="dimmed" mb={4}>First media in order</Text>
+                <img
+                  src={previewUrls[uploadedImages[0].id]}
+                  alt="preview first media"
+                  style={{ width: '100%', maxHeight: 140, objectFit: 'contain', borderRadius: 4 }}
+                />
+              </Paper>
+            )}
+          </Stack>
+        </Paper>
       </aside>
-    </div>
+    </Group>
   );
 };
 
