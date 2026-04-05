@@ -79,9 +79,7 @@ function App() {
 
       <AppShell.Main>
         <Container
-          size="xl"
-          py={{ base: 'sm', sm: 'md' }}
-          px={{ base: 'xs', sm: 'md' }}
+          size="xxl"
           className="app"
         >
           <AppRoutes />

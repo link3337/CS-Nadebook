@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 import MapCanvas from '../components/MapCanvas';
 import { getDisplayMapImage } from '../lib/maps';
 import { useLineupsStore } from '../store/lineups';
@@ -20,7 +21,7 @@ export const LineupDetail: React.FC = () => {
   return (
     <div style={{ padding: 16 }}>
       <div style={{ marginBottom: 12 }}>
-        <button onClick={() => navigate(-1)}>&larr; Back</button>
+        <BackButton onClick={() => navigate(-1)} />
       </div>
       <h2>{lineup.name}</h2>
       <div>

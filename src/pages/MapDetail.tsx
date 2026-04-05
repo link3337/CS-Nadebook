@@ -1,10 +1,21 @@
 import { Button } from '@mantine/core';
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 import type { NormalizedCoords } from '../components/MapCanvas';
 import MapCanvas from '../components/MapCanvas';
 import { getDisplayMapImage } from '../lib/maps';
 import { useLineupsStore } from '../store/lineups';
+
+type UtilityFilter = 'all' | 'smoke' | 'he' | 'molotov' | 'flash';
+
+const utilityOptions: Array<{ value: UtilityFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'smoke', label: 'Smoke' },
+  { value: 'he', label: 'HE' },
+  { value: 'molotov', label: 'Molotov' },
+  { value: 'flash', label: 'Flashbang' }
+];
 
 const targetKey = (coords?: NormalizedCoords) => {
   if (!coords) return '';
@@ -15,23 +26,29 @@ const MapDetail: React.FC = () => {
   const { mapId } = useParams();
   const navigate = useNavigate();
   const [selectedTargetKey, setSelectedTargetKey] = React.useState<string | null>(null);
+  const [utilityFilter, setUtilityFilter] = React.useState<UtilityFilter>('all');
   const allLineups = useLineupsStore((s) => s.lineups);
   const lineups = React.useMemo(
     () => allLineups.filter((l) => l.map === mapId),
     [allLineups, mapId]
   );
 
+  const utilityFilteredLineups = React.useMemo(() => {
+    if (utilityFilter === 'all') return lineups;
+    return lineups.filter((l) => l.utilityType === utilityFilter);
+  }, [lineups, utilityFilter]);
+
   const mapImage = React.useMemo(() => getDisplayMapImage(mapId), [mapId]);
 
   const overlays = React.useMemo(
     () =>
-      lineups
+      utilityFilteredLineups
         .map((l, idx) => ({
           lineup: l,
           color: ['#ff6b6b', '#4dabf7', '#ffd43b'][idx % 3]
         }))
         .filter((item) => item.lineup.startCoords && item.lineup.targetCoords),
-    [lineups]
+    [utilityFilteredLineups]
   );
 
   const filteredOverlays = React.useMemo(() => {
@@ -43,11 +60,11 @@ const MapDetail: React.FC = () => {
   }, [overlays, selectedTargetKey]);
 
   const filteredLineups = React.useMemo(() => {
-    if (!selectedTargetKey) return lineups;
-    return lineups.filter(
+    if (!selectedTargetKey) return utilityFilteredLineups;
+    return utilityFilteredLineups.filter(
       (l) => targetKey(l.targetCoords as NormalizedCoords | undefined) === selectedTargetKey
     );
-  }, [lineups, selectedTargetKey]);
+  }, [utilityFilteredLineups, selectedTargetKey]);
 
   const targetGroups = React.useMemo(() => {
     const map = new Map<
@@ -88,15 +105,34 @@ const MapDetail: React.FC = () => {
     [targetGroups, selectedTargetKey]
   );
 
+  React.useEffect(() => {
+    if (!selectedTargetKey) return;
+    if (!targetGroups.some((g) => g.key === selectedTargetKey)) {
+      setSelectedTargetKey(null);
+    }
+  }, [selectedTargetKey, targetGroups]);
+
   return (
     <div style={{ padding: 16, display: 'flex', gap: 16 }}>
       <div style={{ flex: 1 }}>
-        <div style={{ marginBottom: 12 }}>
-          <Button variant="subtle" onClick={() => navigate(-1)}>
-            Back
-          </Button>
+        <div style={{ marginBottom: 8 }}>
+          <BackButton
+            onClick={() => navigate(-1)}
+          />
         </div>
         <h2>Map: {mapId}</h2>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          {utilityOptions.map((option) => (
+            <Button
+              key={option.value}
+              size="xs"
+              variant={utilityFilter === option.value ? 'filled' : 'light'}
+              onClick={() => setUtilityFilter(option.value)}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
 
         <MapCanvas
           mapImage={mapImage}
