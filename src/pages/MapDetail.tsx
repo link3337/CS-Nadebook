@@ -1,5 +1,7 @@
+import { Button } from '@mantine/core';
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MAPS, getMapImage } from '../lib/maps';
 import { useLineupsStore } from '../store/lineups';
 
 const viewBoxWidth = 1000;
@@ -20,44 +22,41 @@ const MapDetail: React.FC = () => {
     [allLineups, mapId]
   );
 
+  const mapImage = React.useMemo(() => {
+    if (!mapId) return undefined;
+    const meta = MAPS.find((m) => m.id === mapId);
+    return meta?.mapUrl ?? getMapImage(mapId);
+  }, [mapId]);
+
   return (
     <div style={{ padding: 16, display: 'flex', gap: 16 }}>
       <div style={{ flex: 1 }}>
+        <div style={{ marginBottom: 12 }}>
+          <Button variant="subtle" onClick={() => navigate(-1)}>
+            Back
+          </Button>
+        </div>
         <h2>Map: {mapId}</h2>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: 8, overflow: 'hidden' }}>
-          <svg viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`} width="100%" height={400}>
-            <defs>
-              <linearGradient id="bg" x1="0" x2="1">
-                <stop offset="0%" stopColor="#eef2f5" />
-                <stop offset="100%" stopColor="#dfe6ea" />
-              </linearGradient>
-            </defs>
-            <rect x={0} y={0} width={viewBoxWidth} height={viewBoxHeight} fill="url(#bg)" />
-
-            {/* faint grid */}
-            {Array.from({ length: 10 }).map((_, i) => (
-              <line
-                key={`v-${i}`}
-                x1={(i * viewBoxWidth) / 10}
-                y1={0}
-                x2={(i * viewBoxWidth) / 10}
-                y2={viewBoxHeight}
-                stroke="#ffffff80"
-                strokeWidth={1}
-              />
-            ))}
-            {Array.from({ length: 6 }).map((_, i) => (
-              <line
-                key={`h-${i}`}
-                x1={0}
-                y1={(i * viewBoxHeight) / 6}
-                x2={viewBoxWidth}
-                y2={(i * viewBoxHeight) / 6}
-                stroke="#ffffff80"
-                strokeWidth={1}
-              />
-            ))}
+        <div
+          style={{
+            border: '1px solid #ccc',
+            borderRadius: 8,
+            overflow: 'hidden',
+            backgroundImage: mapImage ? `url(${mapImage})` : undefined,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            width: '100%',
+            aspectRatio: `${viewBoxWidth} / ${viewBoxHeight}`
+          }}
+        >
+          <svg
+            viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          >
 
             {/* draw lineups */}
             {lineups.map((l, idx) => {

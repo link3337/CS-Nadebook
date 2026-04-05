@@ -1,6 +1,6 @@
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Lineup, LineupSchema, newLineupDefaults } from '../models/lineup';
-import { create } from 'zustand';
 
 type LineupsState = {
   lineups: Lineup[];
@@ -88,6 +88,22 @@ export const seedSampleLineups = () => {
       // normalized coordinates on a map image (x, y) 0..1
       startCoords: [0.12, 0.75],
       targetCoords: [0.78, 0.22],
+      favorite: true
+    },
+    {
+      name: 'A Site Smoke - Short Plant',
+      map: 'de_dust2',
+      site: 'A',
+      utilityType: 'smoke',
+      startPosition: 'T spawn',
+      target: 'A short boxes',
+      throwTechnique: 'left_click',
+      description: 'Simple A short smoke for plant cover',
+      tags: ['beginner'],
+      imageUrls: [],
+      // normalized coordinates on a map image (x, y) 0..1
+      startCoords: [0.62, 0.25],
+      targetCoords: [0.28, 0.92],
       favorite: true
     },
     {

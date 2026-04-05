@@ -1,25 +1,30 @@
 export type MapMeta = {
   id: string;
   name: string;
-  imageUrl: string; // can be local `public/` path or remote URL
+  posterUrl: string; // can be local `public/` path or remote URL
+  mapUrl?: string; // optional, used for radar/map images in lineup details
 };
 
 export const MAPS: MapMeta[] = [
   {
     id: 'de_dust2',
     name: 'Dust II',
-    imageUrl: 'https://via.placeholder.com/1000x600.png?text=de_dust2'
+    posterUrl: '/maps/dust2/dust2_poster.webp',
+    mapUrl: '/maps/dust2/dust2_game_radar.webp'
   },
   {
     id: 'de_mirage',
     name: 'Mirage',
-    imageUrl: 'https://via.placeholder.com/1000x600.png?text=de_mirage'
+    posterUrl: '/maps/mirage/mirage_poster.webp',
+    mapUrl: '/maps/mirage/mirage_game_radar.webp'
   },
   {
     id: 'de_inferno',
     name: 'Inferno',
-    imageUrl: 'https://via.placeholder.com/1000x600.png?text=de_inferno'
+    posterUrl: '/maps/inferno/inferno_poster.webp',
+    mapUrl: '/maps/inferno/inferno_game_radar.webp'
   }
 ];
 
-export const getMapImage = (mapId?: string) => MAPS.find((m) => m.id === mapId)?.imageUrl;
+export const getMapPoster = (mapId?: string) => MAPS.find((m) => m.id === mapId)?.posterUrl;
+export const getMapImage = (mapId: string) => MAPS.find((m) => m.id === mapId)?.mapUrl;

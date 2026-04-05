@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useLineupsStore } from '../store/lineups';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getMapImage } from '../lib/maps';
+import { useLineupsStore } from '../store/lineups';
 
 const viewBoxWidth = 1000;
 const viewBoxHeight = 600;
@@ -20,7 +20,7 @@ const LineupEdit: React.FC = () => {
   const updateLineup = useLineupsStore((s) => s.updateLineup);
 
   const lineup = getById(lineupId ?? '');
-  const mapImage = getMapImage(lineup?.map);
+  const mapImage = getMapImage(lineup?.map ?? '');
 
   const [name, setName] = useState(lineup?.name ?? '');
   const [description, setDescription] = useState(lineup?.description ?? '');
