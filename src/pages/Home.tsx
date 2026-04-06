@@ -1,12 +1,13 @@
 import React from 'react';
-import { useLineupsStore } from '../store/lineups';
 import LineupCard from '../components/LineupCard';
+import { useLineupsStore } from '../store/lineups';
 
 export const Home: React.FC = () => {
   const lineups = useLineupsStore((s) => s.lineups);
 
   const recent = lineups.slice(0, 6);
-  const favorites = lineups.filter((l) => l.favorite).slice(0, 6);
+
+  const favorites = lineups.filter((l) => l.favorite);
 
   return (
     <div style={{ padding: 16 }}>
@@ -20,8 +21,8 @@ export const Home: React.FC = () => {
             gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))'
           }}
         >
-          {recent.map((l) => (
-            <LineupCard key={l.id} lineup={l} />
+          {recent.map((l, index) => (
+            <LineupCard key={index} lineup={l} />
           ))}
         </div>
       </section>
@@ -36,7 +37,7 @@ export const Home: React.FC = () => {
           }}
         >
           {favorites.map((l) => (
-            <LineupCard key={l.id} lineup={l} />
+            <LineupCard lineup={l} />
           ))}
         </div>
       </section>

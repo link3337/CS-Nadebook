@@ -88,7 +88,7 @@ export const seedSampleLineups = () => {
       // normalized coordinates on a map image (x, y) 0..1
       startCoords: [0.12, 0.75],
       targetCoords: [0.78, 0.22],
-      favorite: true
+      favorite: false
     },
     {
       name: 'A Site Smoke - Short Plant',
@@ -104,7 +104,7 @@ export const seedSampleLineups = () => {
       // normalized coordinates on a map image (x, y) 0..1
       startCoords: [0.62, 0.25],
       targetCoords: [0.28, 0.92],
-      favorite: true
+      favorite: false
     },
     {
       name: 'B Site Flash',
@@ -118,7 +118,8 @@ export const seedSampleLineups = () => {
       tags: ['entry'],
       imageUrls: [],
       startCoords: [0.6, 0.25],
-      targetCoords: [0.48, 0.55]
+      targetCoords: [0.48, 0.55],
+      favorite: false
     },
     {
       name: 'CT Spawn Molotov',
@@ -132,7 +133,8 @@ export const seedSampleLineups = () => {
       tags: ['advanced'],
       imageUrls: [],
       startCoords: [0.18, 0.42],
-      targetCoords: [0.22, 0.18]
+      targetCoords: [0.22, 0.18],
+      favorite: false
     }
   ];
 

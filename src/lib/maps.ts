@@ -23,7 +23,31 @@ export const MAPS: MapMeta[] = [
     name: 'Inferno',
     posterUrl: '/maps/inferno/inferno_poster.webp',
     mapUrl: '/maps/inferno/inferno_game_radar.webp'
-  }
+  },
+  {
+    id: 'de_nuke',
+    name: 'Nuke',
+    posterUrl: '/maps/nuke/nuke_poster.webp',
+    mapUrl: '/maps/nuke/nuke_game_radar.webp'
+  },
+  {
+    id: 'de_ancient',
+    name: 'Ancient',
+    posterUrl: '/maps/ancient/ancient_poster.webp',
+    mapUrl: '/maps/ancient/ancient_game_radar.webp'
+  },
+  {
+    id: 'de_overpass',
+    name: 'Overpass',
+    posterUrl: '/maps/overpass/overpass_poster.webp',
+    mapUrl: '/maps/overpass/overpass_game_radar.webp'
+  },
+  {
+    id: 'de_anubis',
+    name: 'Anubis',
+    posterUrl: '/maps/anubis/anubis_poster.webp',
+    mapUrl: '/maps/anubis/anubis_game_radar.webp'
+  },
 ];
 
 export const getMapPoster = (mapId?: string) => MAPS.find((m) => m.id === mapId)?.posterUrl;

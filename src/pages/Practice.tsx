@@ -13,7 +13,7 @@ export const Practice: React.FC = () => {
       <h2>Practice</h2>
       <div style={{ display: 'grid', gap: 12 }}>
         {needsPractice.map((l) => (
-          <div key={l.id} style={{ border: '1px solid #ddd', padding: 8 }}>
+          <div style={{ border: '1px solid #ddd', padding: 8 }}>
             {l.name} — {l.practiceState}
           </div>
         ))}

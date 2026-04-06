@@ -1,8 +1,10 @@
 import { AppShell, Button, Container, Stack } from '@mantine/core';
 import { IconHome, IconMap2, IconPlus, IconSettings, IconTarget } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
+import './App.css';
 import AppRoutes from './AppRoutes';
 import Footer from './components/Footer';
+import SearchBar from './components/SearchBar';
 import { seedSampleLineups } from './store/lineups';
 
 function App() {
@@ -73,12 +75,18 @@ function App() {
         </Stack>
       </AppShell.Navbar>
 
+      <AppShell.Header>
+        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <SearchBar />
+        </div>
+      </AppShell.Header>
+
       <AppShell.Footer p="xs">
         <Footer />
       </AppShell.Footer>
 
       <AppShell.Main>
-        <Container size="xxl" className="app">
+        <Container size="xxl" className="app" style={{ marginTop: 64 }}>
           <AppRoutes />
         </Container>
       </AppShell.Main>
