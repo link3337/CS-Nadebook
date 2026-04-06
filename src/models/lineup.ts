@@ -18,7 +18,8 @@ export const LocalImageSchema = z.object({
   blobId: z.string().optional(),
   fileName: z.string().optional(),
   mimeType: z.string().optional(),
-  note: z.string().optional()
+  note: z.string().optional(),
+  group: z.string().optional()
 });
 
 export const LineupSchema = z.object({
@@ -59,7 +60,7 @@ export type Lineup = z.infer<typeof LineupSchema>;
 export const newLineupDefaults = (overrides: Partial<Lineup> = {}): Lineup => {
   const now = new Date().toISOString();
   const base: Lineup = {
-    id: overrides.id ?? `${Date.now()}`,
+    id: overrides.id ?? crypto.randomUUID(),
     name: overrides.name ?? 'New Lineup',
     map: overrides.map ?? '',
     side: overrides.side ?? 't',

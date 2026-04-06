@@ -24,7 +24,7 @@ import {
   Stack,
   Text,
   TextInput,
-  Textarea,
+  Textarea
 } from '@mantine/core';
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -197,10 +197,9 @@ const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
 const LineupEdit: React.FC = () => {
   const { lineupId } = useParams();
   const navigate = useNavigate();
-  const getById = useLineupsStore((s) => s.getById);
   const updateLineup = useLineupsStore((s) => s.updateLineup);
 
-  const lineup = getById(lineupId ?? '');
+  const lineup = useLineupsStore((s) => s.lineups.find((l) => l.id === lineupId) as any);
   const mapImage = getDisplayMapImage(lineup?.map);
 
   const [name, setName] = useState(lineup?.name ?? '');
