@@ -20,10 +20,7 @@ export const LineupDetail: React.FC = () => {
 
   const videoUrls = React.useMemo(() => {
     if (!lineup) return [];
-    const combined = [
-      ...(lineup.videoUrls ?? []),
-      ...(lineup.videoUrl ? [lineup.videoUrl] : [])
-    ];
+    const combined = [...(lineup.videoUrls ?? []), ...(lineup.videoUrl ? [lineup.videoUrl] : [])];
     return Array.from(new Set(combined));
   }, [lineup]);
 
@@ -38,7 +35,10 @@ export const LineupDetail: React.FC = () => {
       arr.push(img);
       map.set(key, arr);
     }
-    return Array.from(map.entries()).map(([group, images]) => ({ group: group || undefined, images }));
+    return Array.from(map.entries()).map(([group, images]) => ({
+      group: group || undefined,
+      images
+    }));
   }, [lineup]);
 
   React.useEffect(() => {
@@ -88,7 +88,11 @@ export const LineupDetail: React.FC = () => {
       <h2>{lineup.name}</h2>
       <div style={{ marginTop: 8, marginBottom: 8 }}>
         <Tooltip label={lineup.favorite ? 'Unfavorite' : 'Favorite'}>
-          <ActionIcon onClick={() => useLineupsStore.getState().toggleFavorite(lineup.id)} size="md" variant="light">
+          <ActionIcon
+            onClick={() => useLineupsStore.getState().toggleFavorite(lineup.id)}
+            size="md"
+            variant="light"
+          >
             {lineup.favorite ? <IconStarFilled size={18} /> : <IconStar size={18} />}
           </ActionIcon>
         </Tooltip>
@@ -100,13 +104,27 @@ export const LineupDetail: React.FC = () => {
         <Button component={Link} to={`/lineups/${lineup.id}/edit`} size="xs">
           Edit
         </Button>
-        <Button component={Link} to={`/lineups/new?cloneFrom=${lineup.id}`} variant="light" size="xs">
+        <Button
+          component={Link}
+          to={`/lineups/new?cloneFrom=${lineup.id}`}
+          variant="light"
+          size="xs"
+        >
           Add Same Target Variant
         </Button>
       </div>
       <p>{lineup.description}</p>
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'nowrap', overflowX: 'auto', marginBottom: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          alignItems: 'flex-start',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          marginBottom: 12
+        }}
+      >
         {lineup.uploadedImages.length > 0 && (
           <div style={{ flex: '2 1 0' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -116,13 +134,27 @@ export const LineupDetail: React.FC = () => {
                   style={{ border: '1px solid #ddd', borderRadius: 8, padding: 10 }}
                 >
                   {group && <h4 style={{ margin: '6px 0' }}>{group}</h4>}
-                  <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: 12,
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))'
+                    }}
+                  >
                     {images.map((img: any) => (
-                      <div key={img.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div
+                        key={img.id}
+                        style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                      >
                         <img
                           src={previewUrls[img.id]}
                           alt="lineup uploaded"
-                          style={{ width: '100%', maxHeight: 320, objectFit: 'contain', borderRadius: 6 }}
+                          style={{
+                            width: '100%',
+                            maxHeight: 320,
+                            objectFit: 'contain',
+                            borderRadius: 6
+                          }}
                         />
                         {img.note && <div style={{ fontSize: 14, color: '#444' }}>{img.note}</div>}
                       </div>
@@ -137,7 +169,10 @@ export const LineupDetail: React.FC = () => {
                 <h4 style={{ margin: '8px 0' }}>MP4 Links</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {videoUrls.map((url) => (
-                    <div key={url} style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8 }}>
+                    <div
+                      key={url}
+                      style={{ border: '1px solid #ddd', borderRadius: 8, padding: 8 }}
+                    >
                       <video controls preload="metadata" style={{ width: '100%', borderRadius: 6 }}>
                         <source src={url} type="video/mp4" />
                       </video>
@@ -189,7 +224,6 @@ export const LineupDetail: React.FC = () => {
       </div>
 
       {/* MP4 links moved into the uploaded images column above */}
-
     </div>
   );
 };

@@ -88,7 +88,7 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.75 : 1,
-        cursor: 'grab',
+        cursor: 'grab'
       }}
       {...attributes}
       {...listeners}
@@ -109,7 +109,14 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
         onChange={(e) => onNoteChange(img.id, e.target.value)}
       />
       <Group gap="xs" wrap="wrap">
-        <Button type="button" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(img.id)} disabled={index === 0}>
+        <Button
+          type="button"
+          variant="light"
+          size="xs"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveUp(img.id)}
+          disabled={index === 0}
+        >
           ↑ Up
         </Button>
         <Button
@@ -122,7 +129,14 @@ const SortableImageItem: React.FC<SortableImageItemProps> = ({
         >
           ↓ Down
         </Button>
-        <Button type="button" color="red" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(img.id)}>
+        <Button
+          type="button"
+          color="red"
+          variant="light"
+          size="xs"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onRemove(img.id)}
+        >
           Remove Image
         </Button>
       </Group>
@@ -163,17 +177,26 @@ const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.75 : 1,
-        cursor: 'grab',
+        cursor: 'grab'
       }}
       {...attributes}
       {...listeners}
     >
-      <Text size="xs" c="dimmed" style={{ userSelect: 'none' }}>Drag to reorder</Text>
+      <Text size="xs" c="dimmed" style={{ userSelect: 'none' }}>
+        Drag to reorder
+      </Text>
       <a href={url} target="_blank" rel="noreferrer" onPointerDown={(e) => e.stopPropagation()}>
         {url}
       </a>
       <Group gap="xs" wrap="wrap">
-        <Button type="button" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onMoveUp(url)} disabled={index === 0}>
+        <Button
+          type="button"
+          variant="light"
+          size="xs"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveUp(url)}
+          disabled={index === 0}
+        >
           ↑ Up
         </Button>
         <Button
@@ -186,7 +209,14 @@ const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
         >
           ↓ Down
         </Button>
-        <Button type="button" color="red" variant="light" size="xs" onPointerDown={(e) => e.stopPropagation()} onClick={() => onRemove(url)}>
+        <Button
+          type="button"
+          color="red"
+          variant="light"
+          size="xs"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onRemove(url)}
+        >
           Remove Link
         </Button>
       </Group>
@@ -221,10 +251,7 @@ const LineupEdit: React.FC = () => {
   );
 
   const [videoUrls, setVideoUrls] = useState<string[]>(() => {
-    const combined = [
-      ...(lineup?.videoUrls ?? []),
-      ...(lineup?.videoUrl ? [lineup.videoUrl] : [])
-    ];
+    const combined = [...(lineup?.videoUrls ?? []), ...(lineup?.videoUrl ? [lineup.videoUrl] : [])];
     return Array.from(new Set(combined));
   });
 
@@ -401,7 +428,9 @@ const LineupEdit: React.FC = () => {
     <Group align="flex-start" gap="md" style={{ padding: 16 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <Stack gap="sm" maw={760}>
-          <Text fw={700} size="xl">Edit Lineup</Text>
+          <Text fw={700} size="xl">
+            Edit Lineup
+          </Text>
 
           <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} />
 
@@ -420,7 +449,10 @@ const LineupEdit: React.FC = () => {
           />
 
           <Fieldset legend="Nade Type">
-            <Radio.Group value={utilityType} onChange={(value) => setUtilityType(value as Lineup['utilityType'])}>
+            <Radio.Group
+              value={utilityType}
+              onChange={(value) => setUtilityType(value as Lineup['utilityType'])}
+            >
               <Group gap="md">
                 {utilityTypeOptions.map((option) => (
                   <Radio key={option.value} value={option.value} label={option.label} />
@@ -497,7 +529,8 @@ const LineupEdit: React.FC = () => {
             <Stack gap="xs">
               <Text fw={600}>Local Images + Notes</Text>
               <Text size="xs" c="dimmed">
-                Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota issues.
+                Upload images/GIFs to local IndexedDB storage (not localStorage) to avoid quota
+                issues.
               </Text>
               <Text size="xs" c="dimmed">
                 Reorder with drag and drop, or use arrow buttons.
@@ -583,14 +616,18 @@ const LineupEdit: React.FC = () => {
           <Divider />
           <Group gap="xs">
             <Button onClick={save}>Save</Button>
-            <Button variant="light" color="gray" onClick={() => navigate(-1)}>Cancel</Button>
+            <Button variant="light" color="gray" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
           </Group>
         </Stack>
       </div>
 
       <aside style={{ width: 360, position: 'sticky', top: 12 }}>
         <Paper withBorder radius="md" p="sm">
-          <Text fw={600} mb={8}>Preview</Text>
+          <Text fw={600} mb={8}>
+            Preview
+          </Text>
           <Stack gap="xs">
             <Group gap={6}>
               <Badge variant="light">{utilityLabel}</Badge>
@@ -646,15 +683,19 @@ const LineupEdit: React.FC = () => {
             </Group>
 
             <Text size="sm" c="dimmed">
-              Start: {startCoords ? `${startCoords[0].toFixed(3)}, ${startCoords[1].toFixed(3)}` : '—'}
+              Start:{' '}
+              {startCoords ? `${startCoords[0].toFixed(3)}, ${startCoords[1].toFixed(3)}` : '—'}
             </Text>
             <Text size="sm" c="dimmed">
-              Target: {targetCoords ? `${targetCoords[0].toFixed(3)}, ${targetCoords[1].toFixed(3)}` : '—'}
+              Target:{' '}
+              {targetCoords ? `${targetCoords[0].toFixed(3)}, ${targetCoords[1].toFixed(3)}` : '—'}
             </Text>
 
             {uploadedImages[0] && previewUrls[uploadedImages[0].id] && (
               <Paper withBorder radius="sm" p={6}>
-                <Text size="xs" c="dimmed" mb={4}>First media in order</Text>
+                <Text size="xs" c="dimmed" mb={4}>
+                  First media in order
+                </Text>
                 <img
                   src={previewUrls[uploadedImages[0].id]}
                   alt="preview first media"

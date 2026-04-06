@@ -1,7 +1,7 @@
 import { AppShell, Button, Container, Stack } from '@mantine/core';
 import { IconHome, IconMap2, IconPlus, IconSettings, IconTarget } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
-import AppRoutes from './components/AppRoutes';
+import AppRoutes from './AppRoutes';
 import Footer from './components/Footer';
 import { seedSampleLineups } from './store/lineups';
 
@@ -78,10 +78,7 @@ function App() {
       </AppShell.Footer>
 
       <AppShell.Main>
-        <Container
-          size="xxl"
-          className="app"
-        >
+        <Container size="xxl" className="app">
           <AppRoutes />
         </Container>
       </AppShell.Main>

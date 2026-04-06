@@ -7,7 +7,10 @@ export const LineupNew: React.FC = () => {
   const cloneFrom = searchParams.get('cloneFrom');
 
   const getById = useLineupsStore((s) => s.getById);
-  const sourceLineup = React.useMemo(() => (cloneFrom ? getById(cloneFrom) : undefined), [cloneFrom, getById]);
+  const sourceLineup = React.useMemo(
+    () => (cloneFrom ? getById(cloneFrom) : undefined),
+    [cloneFrom, getById]
+  );
 
   const [name, setName] = useState(sourceLineup ? `${sourceLineup.name} (Alt Start)` : '');
   const [map, setMap] = useState(sourceLineup?.map ?? '');
@@ -19,24 +22,24 @@ export const LineupNew: React.FC = () => {
     const l = addLineup(
       sourceLineup
         ? {
-          name,
-          map,
-          side: sourceLineup.side,
-          site: sourceLineup.site,
-          utilityType: sourceLineup.utilityType,
-          target: sourceLineup.target,
-          targetCoords: sourceLineup.targetCoords,
-          throwTechnique: sourceLineup.throwTechnique,
-          description: sourceLineup.description,
-          tags: sourceLineup.tags,
-          imageUrls: sourceLineup.imageUrls,
-          uploadedImages: sourceLineup.uploadedImages,
-          videoUrls: sourceLineup.videoUrls,
-          videoUrl: sourceLineup.videoUrl,
-          // Force a new start location for the variant
-          startPosition: '',
-          startCoords: undefined
-        }
+            name,
+            map,
+            side: sourceLineup.side,
+            site: sourceLineup.site,
+            utilityType: sourceLineup.utilityType,
+            target: sourceLineup.target,
+            targetCoords: sourceLineup.targetCoords,
+            throwTechnique: sourceLineup.throwTechnique,
+            description: sourceLineup.description,
+            tags: sourceLineup.tags,
+            imageUrls: sourceLineup.imageUrls,
+            uploadedImages: sourceLineup.uploadedImages,
+            videoUrls: sourceLineup.videoUrls,
+            videoUrl: sourceLineup.videoUrl,
+            // Force a new start location for the variant
+            startPosition: '',
+            startCoords: undefined
+          }
         : { name, map }
     );
     navigate(`/lineups/${l.id}/edit`);

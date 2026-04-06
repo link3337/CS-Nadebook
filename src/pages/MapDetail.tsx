@@ -116,9 +116,7 @@ const MapDetail: React.FC = () => {
     <div style={{ padding: 16, display: 'flex', gap: 16 }}>
       <div style={{ flex: 1 }}>
         <div style={{ marginBottom: 8 }}>
-          <BackButton
-            onClick={() => navigate(-1)}
-          />
+          <BackButton onClick={() => navigate(-1)} />
         </div>
         <h2>Map: {mapId}</h2>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -156,7 +154,12 @@ const MapDetail: React.FC = () => {
               onClick: () => navigate(`/lineups/${lineup.id}`)
             })),
             ...filteredOverlays
-              .filter(({ lineup }) => !multiTargetKeys.has(targetKey(lineup.targetCoords as NormalizedCoords | undefined)))
+              .filter(
+                ({ lineup }) =>
+                  !multiTargetKeys.has(
+                    targetKey(lineup.targetCoords as NormalizedCoords | undefined)
+                  )
+              )
               .map(({ lineup, color }) => ({
                 id: `target-${lineup.id}`,
                 at: lineup.targetCoords,
