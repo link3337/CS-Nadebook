@@ -25,11 +25,9 @@ function App() {
         breakpoint: 'sm',
         collapsed: { mobile: false }
       }}
-      header={
-        {
-          height: 64
-        }
-      }
+      header={{
+        height: 64
+      }}
       footer={{
         height: 40,
         collapsed: false
@@ -81,7 +79,9 @@ function App() {
       </AppShell.Navbar>
 
       <AppShell.Header>
-        <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div
+          style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           <SearchBar />
         </div>
       </AppShell.Header>

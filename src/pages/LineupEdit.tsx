@@ -18,6 +18,7 @@ import {
   Button,
   Divider,
   Fieldset,
+  FileButton,
   Group,
   Paper,
   Radio,
@@ -293,9 +294,9 @@ const LineupEdit: React.FC = () => {
     navigate(`/lineups/${lineup.id}`);
   };
 
-  const onUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
+  // handler for Mantine FileButton (returns File[] | null when multiple)
+  const onUploadFiles = async (files: File[] | null) => {
+    if (!files || files.length === 0) return;
     const entries = await Promise.all(
       files.map(async (file, idx) => {
         const blobId = await saveMediaBlob(file);
@@ -309,7 +310,6 @@ const LineupEdit: React.FC = () => {
       })
     );
     setUploadedImages((prev) => [...prev, ...entries]);
-    e.target.value = '';
   };
 
   const updateImageNote = (id: string, note: string) => {
@@ -536,7 +536,9 @@ const LineupEdit: React.FC = () => {
                 Reorder with drag and drop, or use arrow buttons.
               </Text>
               <div>
-                <input type="file" accept="image/*,.gif" multiple onChange={onUploadImages} />
+                <FileButton onChange={onUploadFiles} accept="image/*,.gif" multiple>
+                  {(props) => <Button {...props}>Upload images</Button>}
+                </FileButton>
               </div>
 
               {uploadedImages.length > 0 && (

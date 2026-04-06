@@ -47,7 +47,7 @@ export const MAPS: MapMeta[] = [
     name: 'Anubis',
     posterUrl: '/maps/anubis/anubis_poster.webp',
     mapUrl: '/maps/anubis/anubis_game_radar.webp'
-  },
+  }
 ];
 
 export const getMapPoster = (mapId?: string) => MAPS.find((m) => m.id === mapId)?.posterUrl;
