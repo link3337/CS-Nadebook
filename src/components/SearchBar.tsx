@@ -22,6 +22,7 @@ const SearchBar: React.FC = () => {
     const [query, setQuery] = React.useState('');
     const [debounced] = useDebouncedValue(query, 120);
     const [open, setOpen] = React.useState(false);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
 
     const results = React.useMemo(() => {
         const q = debounced.trim();
@@ -33,8 +34,20 @@ const SearchBar: React.FC = () => {
         setOpen(Boolean(debounced));
     }, [debounced]);
 
+    // close dropdown when clicking outside the search area
+    React.useEffect(() => {
+        function handleDocClick(e: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleDocClick);
+        return () => document.removeEventListener('mousedown', handleDocClick);
+    }, []);
+
     return (
-        <div style={{ position: 'relative', width: '100%', maxWidth: 720 }}>
+        <div ref={containerRef} style={{ position: 'relative', width: '100%', maxWidth: 720 }}>
             <TextInput
                 placeholder="Search lineups by name, map, site, tag..."
                 value={query}

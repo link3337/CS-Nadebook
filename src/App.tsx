@@ -25,6 +25,11 @@ function App() {
         breakpoint: 'sm',
         collapsed: { mobile: false }
       }}
+      header={
+        {
+          height: 64
+        }
+      }
       footer={{
         height: 40,
         collapsed: false
@@ -86,7 +91,7 @@ function App() {
       </AppShell.Footer>
 
       <AppShell.Main>
-        <Container size="xxl" className="app" style={{ marginTop: 64 }}>
+        <Container size="xxl" className="app">
           <AppRoutes />
         </Container>
       </AppShell.Main>
