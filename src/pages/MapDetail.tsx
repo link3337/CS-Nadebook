@@ -1,6 +1,6 @@
 import { Button } from '@mantine/core';
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import type { NormalizedCoords } from '../components/MapCanvas';
 import MapCanvas from '../components/MapCanvas';
@@ -118,7 +118,17 @@ const MapDetail: React.FC = () => {
         <div style={{ marginBottom: 8 }}>
           <BackButton onClick={() => navigate(-1)} />
         </div>
-        <h2>Map: {mapId}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <h2 style={{ margin: 0 }}>Map: {mapId}</h2>
+          <Button
+            component={Link}
+            to={`/lineups/new?map=${mapId}`}
+            size="xs"
+            variant="light"
+          >
+            Add new Lineup
+          </Button>
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           {utilityOptions.map((option) => (
             <Button

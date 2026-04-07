@@ -225,35 +225,58 @@ const SortableVideoItem: React.FC<SortableVideoItemProps> = ({
   );
 };
 
-const LineupEdit: React.FC = () => {
+type LineupEditProps = {
+  isNew?: boolean;
+  sourceLineupId?: string;
+  initialMap?: string;
+};
+
+const LineupEdit: React.FC<LineupEditProps> = ({ isNew = false, sourceLineupId, initialMap }) => {
   const { lineupId } = useParams();
   const navigate = useNavigate();
+  const getById = useLineupsStore((s) => s.getById);
+  const addLineup = useLineupsStore((s) => s.addLineup);
   const updateLineup = useLineupsStore((s) => s.updateLineup);
 
-  const lineup = useLineupsStore((s) => s.lineups.find((l) => l.id === lineupId) as any);
-  const mapImage = getDisplayMapImage(lineup?.map);
+  const sourceLineup = React.useMemo(
+    () => (sourceLineupId ? getById(sourceLineupId) : undefined),
+    [sourceLineupId, getById]
+  );
 
-  const [name, setName] = useState(lineup?.name ?? '');
-  const [description, setDescription] = useState(lineup?.description ?? '');
+  const lineup = isNew
+    ? undefined
+    : useLineupsStore((s) => s.lineups.find((l) => l.id === lineupId) as any);
+
+  const mapImage = getDisplayMapImage(lineup?.map ?? initialMap);
+
+  const [name, setName] = useState(
+    lineup?.name ?? (sourceLineup ? `${sourceLineup.name} (Alt Start)` : '')
+  );
+  const [description, setDescription] = useState(lineup?.description ?? sourceLineup?.description ?? '');
   const [startPosition, setStartPosition] = useState(lineup?.startPosition ?? '');
   const [utilityType, setUtilityType] = useState<Lineup['utilityType']>(
-    lineup?.utilityType ?? 'smoke'
+    lineup?.utilityType ?? sourceLineup?.utilityType ?? 'smoke'
   );
   const [startCoords, setStartCoords] = useState<[number, number] | undefined>(
-    lineup?.startCoords as any
+    (lineup?.startCoords ?? sourceLineup?.startCoords) as any
   );
 
   const [targetCoords, setTargetCoords] = useState<[number, number] | undefined>(
-    lineup?.targetCoords as any
+    (lineup?.targetCoords ?? sourceLineup?.targetCoords) as any
   );
 
   const [uploadedImages, setUploadedImages] = useState<Lineup['uploadedImages']>(
-    lineup?.uploadedImages ?? []
+    lineup?.uploadedImages ?? sourceLineup?.uploadedImages ?? []
   );
 
   const [videoUrls, setVideoUrls] = useState<string[]>(() => {
-    const combined = [...(lineup?.videoUrls ?? []), ...(lineup?.videoUrl ? [lineup.videoUrl] : [])];
-    return Array.from(new Set(combined));
+    const combined = [
+      ...(lineup?.videoUrls ?? []),
+      ...(lineup?.videoUrl ? [lineup.videoUrl] : []),
+      ...(sourceLineup?.videoUrls ?? []),
+      ...(sourceLineup?.videoUrl ? [sourceLineup.videoUrl] : [])
+    ];
+    return Array.from(new Set(combined.filter(Boolean)));
   });
 
   const [videoUrlInput, setVideoUrlInput] = useState('');
@@ -271,7 +294,7 @@ const LineupEdit: React.FC = () => {
   const utilityLabel =
     utilityTypeOptions.find((option) => option.value === utilityType)?.label ?? utilityType;
 
-  if (!lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
+  if (!isNew && !lineup) return <div style={{ padding: 16 }}>Lineup not found</div>;
 
   const onMapClick = (normalized: [number, number]) => {
     if (mode === 'none') return;
@@ -280,6 +303,33 @@ const LineupEdit: React.FC = () => {
   };
 
   const save = () => {
+    if (isNew) {
+      const created = addLineup(
+        sourceLineup
+          ? {
+            name,
+            map: initialMap ?? sourceLineup.map,
+            side: sourceLineup.side,
+            site: sourceLineup.site,
+            utilityType,
+            target: sourceLineup.target,
+            targetCoords: targetCoords ?? sourceLineup.targetCoords,
+            throwTechnique: sourceLineup.throwTechnique,
+            description,
+            tags: sourceLineup.tags,
+            imageUrls: sourceLineup.imageUrls,
+            uploadedImages,
+            videoUrls,
+            videoUrl: videoUrls[0],
+            startPosition,
+            startCoords: startCoords ?? undefined
+          }
+          : { name, map: initialMap ?? '' }
+      );
+      navigate(`/lineups/${created.id}/edit`);
+      return;
+    }
+
     updateLineup(lineup.id, {
       name,
       description,

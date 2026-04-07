@@ -1,6 +1,7 @@
 import React from 'react';
 import LineupCard from '../components/LineupCard';
 import { useLineupsStore } from '../store/lineups';
+import Maps from './Maps';
 
 export const Home: React.FC = () => {
   const lineups = useLineupsStore((s) => s.lineups);
@@ -11,7 +12,7 @@ export const Home: React.FC = () => {
 
   return (
     <div style={{ padding: 16 }}>
-      <h2>Dashboard</h2>
+      <Maps />
       <section>
         <h3>Recent</h3>
         <div

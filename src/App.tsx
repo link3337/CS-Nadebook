@@ -1,5 +1,5 @@
 import { AppShell, Button, Container, Stack } from '@mantine/core';
-import { IconHome, IconMap2, IconPlus, IconSettings, IconTarget } from '@tabler/icons-react';
+import { IconHome, IconMap2, IconSettings, IconTarget } from '@tabler/icons-react';
 import { Link, useLocation } from 'react-router-dom';
 import './App.css';
 import AppRoutes from './AppRoutes';
@@ -12,7 +12,6 @@ function App() {
   const path = location.pathname.toLowerCase();
   const isHomeRoute = path === '/' || path === '/home';
   const isMapsRoute = path === '/maps' || path.startsWith('/maps/');
-  const isNewLineupRoute = path === '/lineups/new';
   const isPracticeRoute = path === '/practice' || path.startsWith('/practice/');
   const isSettingsRoute = path === '/settings' || path.startsWith('/settings/');
 
@@ -50,14 +49,6 @@ function App() {
             aria-label="Maps"
           >
             <IconMap2 size={18} />
-          </Button>
-          <Button
-            component={Link}
-            to="/lineups/new"
-            variant={isNewLineupRoute ? 'light' : 'subtle'}
-            aria-label="New lineup"
-          >
-            <IconPlus size={18} />
           </Button>
           <Button
             component={Link}
